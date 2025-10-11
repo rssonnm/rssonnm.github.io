@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nguyen Son</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="icon" type="image/x-icon" href="../../icon.ico">
+    <style>
+        :root {
+    --primary-color: #2c80b9;
+    --text-color: #333;
+    }
+
+    .tags {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    display: inline-block;
+    background-color: #f0f0f0;
+    color: var(--text-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.tag:hover {
+    background-color: var(--primary-color);
+    color: white;
+    cursor: default;
+}
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../../index.html" class="nav-brand">Nguyen Son</a>
+            <button class="mobile-menu-btn" id="menuBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <a href="../../index.html">Home</a>
+                <a href="../../publications.html">Publications</a>
+                <a href="../../teaching.html">Teaching</a>
+                <a href="../../projects.html">Projects</a>
+                <a href="../../blog.html">Blog</a>
+                <a href="../../files/resume_nguyen_son.pdf">CV</a>
+                <a href="https://www.youtube.com/@ngmson_ai">Youtube</a>
+                
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <aside class="sidebar">
+            <img src="../../img/avt2.jpg" alt="Nguyen Son" class="profile-img">
+            <h2>Nguyen Son</h2>
+            <p>University of Science - VNU</p>
+            <p>Undergraduate Student</p>
+            <p>Graduate Teaching Assistant</p>
+            <p>Vietnam</p>
+            <div class="social-links">
+                <a href="https://github.com/rssonnm" title="Github" class="social-icon">
+                    <i class="icon-github"></i>
+                    <span>Github</span>
+                </a>
+                <a href="https://x.com/sonmchems" title="Twitter" class="social-icon">
+                    <i class="icon-twitter"></i>
+                    <span>Twitter</span>
+                </a>
+                <a href="https://scholar.google.com/citations?user=RpLurfYAAAAJ&hl=vi" title="Google Scholar" class="social-icon">
+                    <i class="icon-scholar"></i>
+                    <span>Scholar</span>
+                </a>
+                <a href="https://orcid.org/0009-0001-2732-9709" title="ORCID" class="social-icon">
+                    <i class="icon-orcid"></i>
+                    <span>ORCID</span>
+                </a>
+                
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <section>
+                <h1>eBook "Machine Learning for the Science"</h1>
+                <div class="tags">
+                    <span class="tag">Machine Learning</span>
+                    <span class="tag">eBook</span>
+
+                </div>
+            </section>
+            
+
+            
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    
+</body>
+</html>
