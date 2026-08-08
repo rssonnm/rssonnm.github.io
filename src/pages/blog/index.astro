@@ -1,0 +1,63 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PostRow from '../../components/PostRow.astro';
+import { SITE, type Topic } from '../../site.config';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Base title={`Blog — index`} description={`All posts on ${SITE.title}.`}>
+  <section class="hero" style="padding-block: 4rem 2rem;">
+    <div class="container hero-grid" style="gap: 1.6rem;">
+      <p class="overline">The complete index of <span class="accent">{SITE.title}</span></p>
+      <h1 class="display" style="font-size: clamp(2rem, 4.6vw, 3.2rem);">All posts.</h1>
+      <p class="lede">{posts.length} published posts across {Object.keys(SITE.topics).filter(k => k !== 'meta').length} disciplines.</p>
+    </div>
+  </section>
+
+  <section class="container" style="padding-bottom: 4rem;">
+    <div class="filter-bar" id="filter-bar" role="group" aria-label="Filter notes by topic">
+      <button class="filter-btn" data-filter="all" aria-pressed="true">All</button>
+      {Object.entries(SITE.topics).map(([key, t]) => (
+        <button class="filter-btn" data-filter={key} aria-pressed="false">
+          <span class:list={['chip', key]} style="border: 0; padding: 0; background: none;">{t.label}</span>
+        </button>
+      ))}
+    </div>
+
+    <div class="index-list" id="post-list">
+      {posts.map((post, i) => <PostRow entry={post} index={i + 1} />)}
+    </div>
+
+    <p id="empty-state" class="lede" style="display: none; padding: 3rem 0; text-align: center; color: var(--ink-dim);">
+      ∄ posts in this section — yet.
+    </p>
+  </section>
+
+  <script>
+    const bar = document.getElementById('filter-bar');
+    const list = document.getElementById('post-list');
+    const empty = document.getElementById('empty-state');
+
+    bar?.addEventListener('click', (ev) => {
+      const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+      if (!btn || !list) return;
+
+      const filter = btn.dataset.filter!;
+      bar.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn))
+      );
+
+      let visible = 0;
+      for (const row of Array.from(list.querySelectorAll('.post-row')) as HTMLElement[]) {
+        const topic = row.querySelector('.chip[class*="math"], .chip[class*="quantum"], .chip[class*="ai"], .chip[class*="meta"]')?.className ?? '';
+        const match = filter === 'all' || topic.includes(filter);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+      }
+      if (empty) empty.style.display = visible ? 'none' : '';
+    });
+  </script>
+</Base>

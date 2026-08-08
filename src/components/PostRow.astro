@@ -1,0 +1,33 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import TopicChip from './TopicChip.astro';
+import { readingMinutes } from '../utils/reading';
+
+interface Props {
+  entry: CollectionEntry<'posts'>;
+  index?: number;
+}
+
+const { entry, index } = Astro.props;
+const { title, description, date, tags, topic, featured } = entry.data;
+const slug = entry.id.replace(/\.mdx?$/, '');
+const reading = readingMinutes(entry.body);
+---
+
+<a href={`/blog/${slug}/`} class="post-row">
+  <span class="idx">{index !== undefined ? String(index).padStart(2, '0') : ''}</span>
+  <div class="body">
+    <h3>{title}</h3>
+    <p class="desc">{description}</p>
+    <div class="meta-line">
+      <time datetime={date.toISOString()}>{date.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
+      <span aria-hidden="true">·</span>
+      <span>{reading} min read</span>
+      <span aria-hidden="true">·</span>
+      <TopicChip topic={topic} />
+      {featured && <span class="chip featured">★ featured</span>}
+      {tags.map((tag) => <span class="chip meta">#{tag}</span>)}
+    </div>
+  </div>
+  <span class="arrow" aria-hidden="true">→</span>
+</a>

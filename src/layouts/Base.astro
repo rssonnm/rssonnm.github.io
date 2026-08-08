@@ -1,0 +1,209 @@
+---
+import '@fontsource/jetbrains-mono/400-italic.css';
+import '@fontsource/jetbrains-mono/500-italic.css';
+import '@fontsource/stix-two-text/400.css';
+import '@fontsource/stix-two-text/400-italic.css';
+import '@fontsource/stix-two-text/600.css';
+import '@fontsource/stix-two-text/700.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/700.css';
+import 'katex/dist/katex.min.css';
+
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../site.config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  bodyClass?: string;
+  /** Set to true on pages that should be excluded from the search index. */
+  pagefindIgnore?: boolean;
+}
+
+const {
+  title = SITE.title,
+  description = SITE.description,
+  bodyClass = '',
+  pagefindIgnore = false,
+} = Astro.props;
+
+const pageTitle = title === SITE.title ? `${SITE.mark} ${SITE.title} — ${SITE.tagline}` : `${title} — ${SITE.mark} ${SITE.title}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).href} />
+    <meta name="generator" content={Astro.generator} />
+
+    <script is:inline>
+      // apply the saved theme before first paint — dark is the default
+      (function () {
+        var t = 'dark';
+        try {
+          t = localStorage.getItem('theme') || 'dark';
+        } catch (e) {
+          /* storage unavailable */
+        }
+        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+      })();
+    </script>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).href} />
+    <meta name="twitter:card" content="summary" />
+  </head>
+  <body class={bodyClass} id="top" data-pagefind-ignore={pagefindIgnore ? '' : undefined}>
+    <div class="progress" id="progress" aria-hidden="true"></div>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <Header />
+    <main id="main" data-pagefind-body>
+      <slot />
+    </main>
+    <Footer />
+
+    <a href="#top" class="back-top" id="back-top" aria-label="Back to top">↑</a>
+
+    <noscript>
+      <style>
+        .reveal { opacity: 1 !important; transform: none !important; }
+        .theme-toggle { display: none !important; }
+      </style>
+    </noscript>
+
+    <script>
+      // reading progress — one hairline that fills as you scroll
+      const prog = document.getElementById('progress');
+      const onProg = () => {
+        const doc = document.documentElement;
+        const max = doc.scrollHeight - doc.clientHeight;
+        prog!.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+      };
+      window.addEventListener('scroll', onProg, { passive: true });
+      window.addEventListener('resize', onProg, { passive: true });
+      onProg();
+
+      // back-to-top
+      const back = document.getElementById('back-top');
+      const onScroll = () => back?.classList.toggle('show', window.scrollY > 600);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      // count-up for [data-count] stats when they scroll into view
+      {
+        const counters = Array.from(document.querySelectorAll<HTMLElement>('[data-count]'));
+        if (counters.length) {
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const animate = (el: HTMLElement) => {
+            const target = Number(el.dataset.count || '0');
+            const pad = Number(el.dataset.pad || '0');
+            if (reduced || Number.isNaN(target)) {
+              el.textContent = String(target).padStart(pad, '0');
+              return;
+            }
+            const dur = 900;
+            const t0 = performance.now();
+            const step = (t: number) => {
+              const p = Math.min(1, (t - t0) / dur);
+              const eased = 1 - Math.pow(1 - p, 3);
+              el.textContent = String(Math.round(target * eased)).padStart(pad, '0');
+              if (p < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+          };
+          const io = new IntersectionObserver(
+            (entries) => {
+              for (const e of entries) {
+                if (e.isIntersecting) {
+                  animate(e.target as HTMLElement);
+                  io.unobserve(e.target);
+                }
+              }
+            },
+            { threshold: 0.3 }
+          );
+          counters.forEach((el) => io.observe(el));
+        }
+      }
+
+      // code blocks: a slim header with the language and a copy button
+      {
+        const copyText = async (text: string) => {
+          try {
+            await navigator.clipboard.writeText(text);
+            return true;
+          } catch {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              return document.execCommand('copy');
+            } catch {
+              return false;
+            } finally {
+              ta.remove();
+            }
+          }
+        };
+        document.querySelectorAll('pre.astro-code').forEach((pre) => {
+          if (pre.closest('.code-frame')) return;
+          const lang = pre.getAttribute('data-language') || 'text';
+          const frame = document.createElement('div');
+          frame.className = 'code-frame';
+          const head = document.createElement('div');
+          head.className = 'code-head';
+          const label = document.createElement('span');
+          label.className = 'code-lang';
+          label.textContent = lang;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'code-copy';
+          btn.textContent = 'copy';
+          btn.addEventListener('click', () => {
+            void copyText(pre.innerText).then((ok) => {
+              btn.textContent = ok ? 'copied' : 'failed';
+              window.setTimeout(() => {
+                btn.textContent = 'copy';
+              }, 900);
+            });
+          });
+          head.append(label, btn);
+          pre.parentNode?.insertBefore(frame, pre);
+          frame.append(head, pre);
+        });
+      }
+
+      // gentle reveal-on-scroll for hero blocks
+      const revealables = document.querySelectorAll('.reveal');
+      if (revealables.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('in');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { threshold: 0.12 }
+        );
+        revealables.forEach((el) => io.observe(el));
+      } else {
+        revealables.forEach((el) => el.classList.add('in'));
+      }
+    </script>
+  </body>
+</html>

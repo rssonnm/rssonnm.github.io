@@ -1,0 +1,20 @@
+---
+// The About page was merged into the homepage (single-page academic profile).
+// This route is kept so old links still work — it redirects to the home page.
+const url = new URL('/', Astro.site ?? 'https://sonmanhng.github.io');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content={`0; url=${url.pathname}`} />
+    <link rel="canonical" href={url.toString()} />
+    <title>Redirecting…</title>
+  </head>
+  <body>
+    <p style="font: 16px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 6rem auto; padding: 0 1rem;">
+      The About page has been merged into the homepage — <a href={url.pathname}>go to the home page</a>.
+    </p>
+  </body>
+</html>

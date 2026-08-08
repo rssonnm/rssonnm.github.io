@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config';
+
+const active = [
+  {
+    title: 'Quantum Deep Learning for Science',
+    desc: 'Developing quantum-enhanced deep learning models and algorithms to tackle fundamental challenges in scientific disciplines, focusing on robust and scalable quantum architectures.',
+    tags: ['Quantum ML', 'Deep Learning', 'Applied Math', 'JAX'],
+  },
+  {
+    title: 'Optimization based on Artificial Neural Networks',
+    desc: 'Applying artificial neural networks to design and optimize complex experimental processes, providing precise forecasting and multidimensional parameter tuning for scientific research.',
+    tags: ['Neural Networks', 'Optimization', 'Chemometrics', 'Python'],
+  },
+];
+
+const past = [
+  {
+    title: 'AI for Vietnamese Orange Quality',
+    desc: 'Non-destructive prediction of citrus sweetness using computer vision and deep neural networks. Achieved real-time inference for farm-to-fork supply chain applications.',
+    tags: ['Computer Vision', 'PyTorch', 'IoT'],
+  },
+  {
+    title: 'In Silico Screening for Medicinal Plant Research',
+    desc: 'Computational screening of bioactive compounds from traditional medicinal plants using molecular docking, pharmacophore modeling, and cheminformatics to discover novel therapeutic candidates.',
+    tags: ['In Silico Screening', 'Molecular Docking', 'Cheminformatics'],
+  },
+];
+---
+
+<Base title={`Projects — ${SITE.title}`} description={`Research projects of ${SITE.author} spanning quantum machine learning, computational chemistry and AI-driven food science.`}>
+  <section class="hero" style="padding-block: 4rem 2rem;">
+    <div class="container hero-grid" style="gap: 1.6rem;">
+      <p class="overline">A selection of <span class="accent">research projects</span></p>
+      <h1 class="display" style="font-size: clamp(2rem, 4.6vw, 3.2rem);">Projects.</h1>
+      <p class="lede">
+        Research spanning <strong>quantum machine learning</strong>, <strong>computational chemistry</strong>,
+        and <strong>AI-driven food science</strong>.
+      </p>
+    </div>
+  </section>
+
+  <section class="container" style="padding-bottom: 4rem;">
+    <div class="section-head">
+      <h2><span class="n">01</span>Active</h2>
+      <span class="meta">in progress</span>
+    </div>
+    <div class="about-grid" style="grid-template-columns: 1fr;">
+      {active.map((p) => (
+        <div class="about-cell" style="padding: 1.8rem 1.6rem;">
+          <h3>{p.title}</h3>
+          <p>{p.desc}</p>
+          <div class="meta-line" style="margin-top: 0.6rem;">
+            {p.tags.map((t) => <span class="chip">{t}</span>)}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="section-head" style="margin-top: 3.5rem;">
+      <h2><span class="n">02</span>Past</h2>
+      <span class="meta">completed</span>
+    </div>
+    <div class="about-grid" style="grid-template-columns: 1fr;">
+      {past.map((p) => (
+        <div class="about-cell" style="padding: 1.8rem 1.6rem;">
+          <h3>{p.title}</h3>
+          <p>{p.desc}</p>
+          <div class="meta-line" style="margin-top: 0.6rem;">
+            {p.tags.map((t) => <span class="chip">{t}</span>)}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>

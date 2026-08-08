@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config';
+
+const gta = [
+  { code: 'CH35', name: 'Statistics and Applied Mathematics for Chemistry', year: 2025 },
+  { code: 'CH34', name: 'Chemometrics in Analytical Chemistry', year: 2024 },
+  { code: 'CH34', name: 'Statistics and Applied Mathematics for Chemistry', year: 2024 },
+  { code: 'CH33', name: 'Statistics and Applied Mathematics for Chemistry', year: 2023 },
+];
+
+const ugta = [
+  { code: 'CHE2116', name: 'Analytical Chemistry', year: 2025 },
+  { code: 'CHE2129', name: 'Advanced Analytical Chemistry', year: 2025 },
+  { code: 'CHE2129', name: 'Advanced Analytical Chemistry', year: 2024 },
+];
+---
+
+<Base title={`Teaching — ${SITE.title}`} description={`Teaching assistant roles of ${SITE.author} at the University of Science, VNU.`}>
+  <section class="hero" style="padding-block: 4rem 2rem;">
+    <div class="container hero-grid" style="gap: 1.6rem;">
+      <p class="overline">Graduate &amp; Undergraduate <span class="accent">Teaching Assistant</span></p>
+      <h1 class="display" style="font-size: clamp(2rem, 4.6vw, 3.2rem);">Teaching.</h1>
+      <p class="lede">
+        At the <strong>University of Science, VNU</strong>, I support courses that apply
+        <strong>statistics</strong> and <strong>machine learning</strong> to chemical analysis —
+        from chemometrics to advanced instrumental methods.
+      </p>
+    </div>
+  </section>
+
+  <section class="container" style="padding-bottom: 4rem;">
+    <div class="section-head">
+      <h2><span class="n">01</span>Graduate TA</h2>
+      <span class="meta">chemistry courses</span>
+    </div>
+    <div class="index-list">
+      {gta.map((c, i) => (
+        <div class="post-row static" style="grid-template-columns: 5.5rem 1fr auto;">
+          <span class="idx" style="align-self: center;">{String(i + 1).padStart(2, '0')}</span>
+          <div class="body">
+            <h3>{c.name}</h3>
+            <div class="meta-line">
+              <span class="chip">{c.code}</span>
+            </div>
+          </div>
+          <span class="arrow" aria-hidden="true">{c.year}</span>
+        </div>
+      ))}
+    </div>
+
+    <div class="section-head" style="margin-top: 3.5rem;">
+      <h2><span class="n">02</span>Undergraduate TA</h2>
+      <span class="meta">analytical chemistry</span>
+    </div>
+    <div class="index-list">
+      {ugta.map((c, i) => (
+        <div class="post-row static" style="grid-template-columns: 5.5rem 1fr auto;">
+          <span class="idx" style="align-self: center;">{String(i + 1).padStart(2, '0')}</span>
+          <div class="body">
+            <h3>{c.name}</h3>
+            <div class="meta-line">
+              <span class="chip">{c.code}</span>
+            </div>
+          </div>
+          <span class="arrow" aria-hidden="true">{c.year}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>

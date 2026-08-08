@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config';
+
+const talks = [
+  {
+    title: 'Application of Explainable AI in Personalized Nutrition',
+    event: 'International Conference on Chemical and Microbiological Risk Assessment for Food Safety',
+    year: 2025,
+  },
+  {
+    title: 'Artificial Intelligence for Drug Discovery',
+    event: 'Invited talk / outreach',
+    year: 2025,
+  },
+  {
+    title: 'Molecular Modeling for Drug Discovery',
+    event: 'Invited talk / outreach',
+    year: 2025,
+  },
+];
+---
+
+<Base title={`Talks — ${SITE.title}`} description={`Talks and outreach by ${SITE.author}.`}>
+  <section class="hero" style="padding-block: 4rem 2rem;">
+    <div class="container hero-grid" style="gap: 1.6rem;">
+      <p class="overline">Talks &amp; <span class="accent">outreach</span></p>
+      <h1 class="display" style="font-size: clamp(2rem, 4.6vw, 3.2rem);">Talks.</h1>
+      <p class="lede">Selected presentations on <strong>AI for drug discovery</strong>, <strong>personalized nutrition</strong>, and molecular modeling.</p>
+    </div>
+  </section>
+
+  <section class="container" style="padding-bottom: 4rem;">
+    <div class="index-list">
+      {talks.map((t, i) => (
+        <div class="post-row static" style="grid-template-columns: 3.4rem 1fr auto;">
+          <span class="idx" style="align-self: center;">{String(i + 1).padStart(2, '0')}</span>
+          <div class="body">
+            <h3>{t.title}</h3>
+            <p class="desc">{t.event}</p>
+          </div>
+          <span class="arrow" aria-hidden="true" style="opacity: 1; transform: none; color: var(--ink-dim);">{t.year}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,247 @@
+---
+// Full-text search over the built site, powered by the Pagefind index that
+// `npm run build` produces into dist/pagefind/.
+// In dev (`astro dev`) the index does not exist — the UI degrades to a
+// friendly notice instead of an error.
+---
+
+<button
+  class="search-toggle"
+  id="search-toggle"
+  type="button"
+  aria-label="Search the blog"
+  aria-haspopup="dialog"
+  aria-expanded="false"
+>
+  <svg
+    class="search-icon"
+    viewBox="0 0 16 16"
+    width="14"
+    height="14"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    aria-hidden="true"
+  >
+    <circle cx="6.5" cy="6.5" r="4.5" />
+    <path d="M10 10 L14 14" />
+  </svg>
+  <span class="search-label">Search</span>
+  <kbd aria-hidden="true">/</kbd>
+</button>
+
+<div class="search-overlay" id="search-overlay" aria-hidden="true">
+  <div class="search-modal" role="dialog" aria-modal="true" aria-label="Search the blog">
+    <div class="search-row">
+      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="6.5" cy="6.5" r="4.5" />
+        <path d="M10 10 L14 14" />
+      </svg>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Search the blog…"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Search query"
+      />
+      <kbd aria-hidden="true">esc</kbd>
+    </div>
+    <div class="search-results" id="search-results"></div>
+    <div class="search-status" id="search-status" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+  const base = import.meta.env.BASE_URL;
+
+  const overlay = document.getElementById('search-overlay') as HTMLElement;
+  const toggle = document.getElementById('search-toggle') as HTMLButtonElement | null;
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const resultsEl = document.getElementById('search-results') as HTMLElement;
+  const statusEl = document.getElementById('search-status') as HTMLElement;
+
+  let pagefind: any = null;
+  let loadPromise: Promise<boolean> | null = null;
+  let debounceId: number | undefined;
+
+  const load = () => {
+    if (!loadPromise) {
+      loadPromise = (async () => {
+        statusEl.textContent = 'loading index…';
+        try {
+          pagefind = await import(/* @vite-ignore */ `${base}pagefind/pagefind.js`);
+          return true;
+        } catch {
+          pagefind = null;
+          return false;
+        }
+      })();
+    }
+    return loadPromise;
+  };
+
+  const close = () => {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    toggle?.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    input.value = '';
+    resultsEl.innerHTML = '';
+    statusEl.textContent = '';
+    toggle?.focus();
+  };
+
+  // open() was previously called via the input listener race: if the user
+  // types before the index finished loading, re-run the pending query.
+  let pendingQuery = '';
+  const runPending = async () => {
+    if (pendingQuery) {
+      const q = pendingQuery;
+      pendingQuery = '';
+      await run(q);
+    }
+  };
+
+  const open = async () => {
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    toggle?.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    input.focus();
+    const ok = await load();
+    if (!ok) {
+      statusEl.textContent = 'Index not built — run `npm run build` to enable search.';
+      return;
+    }
+    if (pendingQuery) {
+      await runPending();
+    }
+  };
+
+  const escapeHtml = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const render = async (results: any[], q: string) => {
+    if (!results.length) {
+      resultsEl.innerHTML = `<div class="search-empty">No results for “${escapeHtml(q)}”.</div>`;
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    for (const r of results.slice(0, 12)) {
+      const data = await r.data();
+      const a = document.createElement('a');
+      a.className = 'search-result';
+      a.href = base.replace(/\/$/, '') + data.url;
+
+      const title = document.createElement('span');
+      title.className = 'search-result-title';
+      title.textContent = data.meta?.title || data.title || '';
+      a.appendChild(title);
+
+      // pagefind ≥1.5: data.excerpt is an already-highlighted HTML string
+      if (data.excerpt) {
+        const ex = document.createElement('span');
+        ex.className = 'search-result-excerpt';
+        ex.innerHTML = data.excerpt; // pagefind's own <mark> highlights
+        a.appendChild(ex);
+      }
+
+      const url = document.createElement('span');
+      url.className = 'search-result-url';
+      url.textContent = data.url;
+      a.appendChild(url);
+
+      frag.appendChild(a);
+    }
+    resultsEl.innerHTML = '';
+    resultsEl.appendChild(frag);
+  };
+
+  const run = async (q: string) => {
+    if (!pagefind) return;
+    if (!q.trim()) {
+      resultsEl.innerHTML = '';
+      statusEl.textContent = '';
+      return;
+    }
+    statusEl.textContent = 'searching…';
+    try {
+      const res = await pagefind.search(q);
+      statusEl.textContent = '';
+      await render(res.results, q);
+    } catch {
+      statusEl.textContent = 'search failed';
+    }
+  };
+
+  toggle?.addEventListener('click', () =>
+    overlay.classList.contains('open') ? close() : open()
+  );
+
+  input.addEventListener('input', () => {
+    window.clearTimeout(debounceId);
+    const q = input.value;
+    pendingQuery = q;
+    debounceId = window.setTimeout(() => {
+      pendingQuery = '';
+      run(q);
+    }, 150);
+  });
+
+  // close on backdrop click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
+
+  // arrow-key navigation inside results
+  const move = (dir: 1 | -1) => {
+    const items = Array.from(resultsEl.querySelectorAll<HTMLAnchorElement>('a.search-result'));
+    if (!items.length) return;
+    const idx = items.indexOf(document.activeElement as HTMLAnchorElement);
+    const next = items[(idx + dir + items.length) % items.length];
+    next?.focus();
+  };
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      move(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      move(-1);
+    } else if (e.key === 'Enter') {
+      const first = resultsEl.querySelector<HTMLAnchorElement>('a.search-result');
+      first?.focus();
+      e.preventDefault();
+    }
+  });
+
+  // global shortcuts: / or ⌘K / Ctrl+K
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) {
+      close();
+      e.preventDefault();
+      return;
+    }
+    if (overlay.classList.contains('open')) return;
+
+    const active = document.activeElement as HTMLElement | null;
+    const typing =
+      active &&
+      (active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        active.tagName === 'SELECT' ||
+        active.isContentEditable);
+
+    const isShortcut =
+      (e.key === '/' && !typing) ||
+      ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k');
+
+    if (isShortcut) {
+      e.preventDefault();
+      open();
+    }
+  });
+</script>

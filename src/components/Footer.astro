@@ -1,0 +1,35 @@
+---
+import { SITE } from '../site.config';
+import katex from 'katex';
+
+const signature = katex.renderToString('\\\\nabla \\\\cdot \\\\mathbf{B} = 0', {
+  throwOnError: false,
+});
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="brand" aria-label={`${SITE.title} — home`}>
+          <span class="mark">{SITE.mark}</span>
+          <span class="wordmark">{SITE.title}</span>
+        </a>
+        <p class="tagline">{SITE.role} — {SITE.affiliation}.</p>
+      </div>
+      <div class="footer-links">
+        <a href="/publications/">Publications</a>
+        <a href="/projects/">Projects</a>
+        <a href="/blog/">Blog</a>
+        <a href="/blog/rss.xml">RSS feed</a>
+        <a href={SITE.github} rel="noopener" target="_blank">GitHub</a>
+      </div>
+    </div>
+
+    <div class="footer-signature">
+      <span class="caption">No monopoles — only ideas. © {year} {SITE.author}</span>
+      <span aria-hidden="true" set:html={signature} />
+    </div>
+  </div>
+</footer>

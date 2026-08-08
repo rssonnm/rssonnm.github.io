@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config';
+import { PUBLICATIONS, publicationsByYear, renderByline } from '../data/publications';
+
+const byYear = publicationsByYear();
+const total = PUBLICATIONS.length;
+---
+
+<Base title={`Publications — ${SITE.title}`} description={`Publications of ${SITE.author}: ${total} papers on chemometrics, machine learning and AI for science.`}>
+  <section class="hero" style="padding-block: 4rem 2rem;">
+    <div class="container hero-grid" style="gap: 1.6rem;">
+      <p class="overline">The full record of <span class="accent">{SITE.author}</span></p>
+      <h1 class="display" style="font-size: clamp(2rem, 4.6vw, 3.2rem);">Publications.</h1>
+      <p class="lede">
+        {total} papers spanning <strong>chemometrics</strong>, <strong>machine learning for spectroscopy</strong>,
+        and <strong>AI for food &amp; natural-product science</strong>. Names in <strong>bold</strong> are the author of this site.
+      </p>
+    </div>
+  </section>
+
+  <section class="container" style="padding-bottom: 4rem;">
+    {
+      byYear.map(({ year, items }) => (
+        <div style="margin-top: 2.6rem;">
+          <div class="section-head">
+            <h2><span class="n">{String(year)}</span>{items.length} paper{items.length === 1 ? '' : 's'}</h2>
+            <span class="meta">{(year === 2026 ? 'in press / published' : 'published')}</span>
+          </div>
+          <div class="index-list">
+            {items.map((p) => (
+              <div class="pub-row">
+                <span class="idx">{String(items.indexOf(p) + 1).padStart(2, '0')}</span>
+                <div class="body">
+                  <h3>
+                    {p.link ? <a href={p.link} rel="noopener" target="_blank">{p.title} <span class="ext" aria-hidden="true">↗</span></a> : p.title}
+                  </h3>
+                  <p class="desc authors" set:html={renderByline(p.authors)} />
+                  <p class="desc venue">{p.venue}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+
+    <div class="qed" aria-hidden="true" style="margin-top: 4rem;"><span class="mark">∎</span></div>
+  </section>
+</Base>

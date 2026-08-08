@@ -1,0 +1,15 @@
+---
+import { SITE, type Topic } from '../site.config';
+
+interface Props {
+  topic: Topic;
+}
+
+const { topic } = Astro.props;
+const t = SITE.topics[topic];
+---
+
+<span class:list={['chip', topic]} title={t.hint}>
+  <span class="dot" aria-hidden="true" />
+  {t.label}
+</span>

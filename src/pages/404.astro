@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../site.config';
+---
+
+<Base title="404 — not found" pagefindIgnore={true}>
+  <section class="not-found">
+    <span class="symbol" aria-hidden="true">∄</span>
+    <p class="overline" style="justify-content: center;"><span class="accent">∄</span> this object does not exist</p>
+    <p class="lede" style="color: var(--ink-soft);">The page you requested is not in the index. It may have been deleted, moved, or never constructed.</p>
+    <a class="btn" href="/">Return to the index <span class="arr">→</span></a>
+  </section>
+</Base>

@@ -1,0 +1,77 @@
+---
+import { SITE } from '../site.config';
+import Search from './Search.astro';
+
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' || path === '/index.html' : path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="brand" aria-label={`${SITE.title} — home`}>
+      <span class="mark">{SITE.mark}</span>
+      <span class="wordmark">{SITE.title}</span>
+    </a>
+
+    <nav class="site-nav" id="site-nav" aria-label="Primary">
+      <a href="/" aria-current={isActive('/') ? 'page' : undefined}>Home</a>
+      <a href="/publications/" aria-current={isActive('/publications') ? 'page' : undefined}>Publications</a>
+      <a href="/teaching/" aria-current={isActive('/teaching') ? 'page' : undefined}>Teaching</a>
+      <a href="/talks/" aria-current={isActive('/talks') ? 'page' : undefined}>Talks</a>
+      <a href="/projects/" aria-current={isActive('/projects') ? 'page' : undefined}>Projects</a>
+      <a href="/blog/" aria-current={isActive('/blog') ? 'page' : undefined}>Blog</a>
+    </nav>
+
+    <Search />
+
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch color theme">
+      <span class="icon-sun" aria-hidden="true">☀</span>
+      <span class="icon-moon" aria-hidden="true">☾</span>
+    </button>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-nav">
+      <span class="nav-icon-open" aria-hidden="true">☰</span>
+      <span class="nav-icon-close" aria-hidden="true">✕</span>
+    </button>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('theme-toggle');
+  btn?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    root.setAttribute('data-theme', next);
+    // a brief window where colour transitions are enabled → smooth swap
+    root.classList.add('theme-anim');
+    window.setTimeout(() => root.classList.remove('theme-anim'), 400);
+    try {
+      localStorage.setItem('theme', next);
+    } catch {
+      /* storage unavailable — still apply for this session */
+    }
+  });
+
+  // mobile drawer navigation
+  const nav = document.getElementById('site-nav');
+  const navToggle = document.getElementById('nav-toggle');
+  const setNav = (open: boolean) => {
+    nav?.classList.toggle('open', open);
+    navToggle?.setAttribute('aria-expanded', String(open));
+    navToggle?.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    document.body.classList.toggle('nav-locked', open);
+  };
+  navToggle?.addEventListener('click', () => setNav(!nav?.classList.contains('open')));
+  nav?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setNav(false)));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setNav(false);
+  });
+  // close the drawer when the search modal opens, or when clicking outside it
+  document.querySelector('.search-toggle')?.addEventListener('click', () => setNav(false));
+  document.addEventListener('click', (e) => {
+    if (!nav?.classList.contains('open')) return;
+    const t = e.target as HTMLElement;
+    if (!nav.contains(t) && !navToggle?.contains(t)) setNav(false);
+  });
+</script>

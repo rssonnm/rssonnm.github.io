@@ -1,0 +1,207 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PostRow from '../components/PostRow.astro';
+import { SITE } from '../site.config';
+import { PUBLICATIONS, renderByline } from '../data/publications';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
+
+const latest = posts.slice(0, 5);
+const postCount = posts.length;
+const pubCount = PUBLICATIONS.length;
+const selectedPubs = PUBLICATIONS.slice(0, 4);
+
+const news = [
+  { when: '2026', text: '3 papers accepted for publication / conference.' },
+  { when: 'Oct 2025', text: '3 papers accepted at the 8th National Metrology Conference.' },
+  { when: 'Apr 2025', text: 'First Prize — National Poster Award, analytica Vietnam 2025.' },
+  { when: 'Mar 2025', text: '2 papers accepted at analytica Vietnam Conference 2025.' },
+  { when: 'Dec 2024', text: '1st & 4th Place — International Food Control Conference.' },
+  { when: '2024', text: 'Academic Encouragement Scholarship · VietChem Scholarship · 2nd Prize, Student Science Research Award.' },
+  { when: '2023', text: 'Student with Five Good Merits — City, VNU & School level · Outstanding Young Person.' },
+];
+
+const awards = [
+  { prize: 'First Prize', event: 'National Poster Award — analytica Vietnam, 2025' },
+  { prize: 'First Prize', event: 'Poster Presentation — International Food Control Conference, 2024' },
+  { prize: 'Scholarships', event: 'Academic Encouragement Scholarship · VietChem Scholarship, 2024' },
+  { prize: '2nd Prize', event: 'Student Science Research Award (Dept level), 2024' },
+  { prize: 'Five Good Merits', event: 'City, VNU & School level, 2023' },
+];
+
+const areas = SITE.researchAreas;
+const areaTone = ['', 'quantum', 'ai', '', 'quantum'];
+---
+
+<Base>
+  <section class="hero acad-hero">
+    <div class="container acad-grid">
+      <div class="acad-main">
+        <p class="overline reveal">AI for Sciences — <span class="accent">quantum · graph · chemometrics</span></p>
+
+        <h1 class="display reveal">
+          Son Nguyen<span class="soft">— building computational tools for scientific discovery.</span>
+        </h1>
+
+        <p class="lede reveal">
+          I am an AI researcher at the intersection of
+          <strong>quantum machine learning</strong>, <strong>graph machine learning</strong>, and
+          <strong>analytical chemistry</strong> — a senior student at the
+          <strong>University of Science, Vietnam National University</strong> and an
+          <strong>AI Researcher at the Vietnam Institute of Ginseng and Herbal Medicine</strong>.
+          I lead the <strong>AI – Analytical Chemistry Laboratory</strong> (with Assoc. Prof. Dr. Ta Thi Thao)
+          and work with the <strong>Natural Product Chemistry Laboratory</strong> (with Prof. Dr. Phan Minh Giang),
+          building computational tools that accelerate scientific discovery.
+        </p>
+
+        <div class="acad-contact reveal">
+          <a class="btn" href={SITE.email ? `mailto:${SITE.email}` : '#'}>Email <span class="arr">↗</span></a>
+          <a class="btn" href={SITE.github} rel="noopener" target="_blank">GitHub <span class="arr">↗</span></a>
+          <a class="btn" href={SITE.scholar} rel="noopener" target="_blank">Scholar <span class="arr">↗</span></a>
+          <a class="btn" href={SITE.cv} rel="noopener" target="_blank">CV <span class="arr">↗</span></a>
+        </div>
+
+        <div class="meta-line acad-stats">
+          <span><strong data-count={pubCount} data-pad="2">{String(pubCount).padStart(2, '0')}</strong> publications</span>
+          <span><strong data-count={postCount} data-pad="2">{String(postCount).padStart(2, '0')}</strong> posts</span>
+          <span><strong>ℵ₀</strong> open problems</span>
+        </div>
+      </div>
+
+      <figure class="acad-portrait reveal">
+        <img src="/img/avatar.jpg" alt={`Portrait of ${SITE.author}`} width="854" height="1280" />
+        <figcaption>
+          <span class="name">{SITE.author}</span>
+          <span class="aff">{SITE.affiliation}</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="container" style="padding-bottom: 2rem;">
+    <div class="section-head">
+      <h2><span class="n">01</span>Research areas</h2>
+      <span class="meta">three fields, one notebook</span>
+    </div>
+
+    <div class="research-grid">
+      {areas.map((a, i) => (
+        <div class:list={['about-cell', 'research-cell', areaTone[i] ?? '']}>
+          <span class="sym" aria-hidden="true">{a.sym}</span>
+          <div class="research-body">
+            <h3>{a.label}</h3>
+            <p>{a.hint}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="container" style="padding-top: 3.5rem;">
+    <div class="section-head">
+      <h2><span class="n">02</span>Selected publications</h2>
+      <span class="meta">a sample of the record ↓</span>
+    </div>
+
+    <div class="index-list">
+      {selectedPubs.map((p, i) => (
+        <div class="pub-row">
+          <span class="idx">{String(i + 1).padStart(2, '0')}</span>
+          <div class="body">
+            <h3>
+              {p.link ? <a href={p.link} rel="noopener" target="_blank">{p.title} <span class="ext" aria-hidden="true">↗</span></a> : p.title}
+            </h3>
+            <p class="desc authors" set:html={renderByline(p.authors)} />
+            <p class="desc venue">{p.venue}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="container" style="padding-top: 3.5rem;">
+    <div class="section-head">
+      <h2><span class="n">03</span>News &amp; milestones</h2>
+      <span class="meta">a compressed timeline</span>
+    </div>
+
+    <ul class="about-list">
+      {news.map((n) => (
+        <li>
+          <span class="tag">{n.when}</span>
+          <span>{n.text}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="container" style="padding-top: 3.5rem;">
+    <div class="section-head">
+      <h2><span class="n">04</span>Selected awards</h2>
+      <span class="meta">a short shelf</span>
+    </div>
+
+    <ul class="about-list">
+      {awards.map((a) => (
+        <li>
+          <span class="tag">{a.prize}</span>
+          <span>{a.event}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="container" style="padding-top: 3.5rem;">
+    <div class="section-head">
+      <h2><span class="n">05</span>Blog — Latest posts</h2>
+      <span class="meta">sorted by date ↓</span>
+    </div>
+    <div class="index-list">
+      {latest.map((post, i) => <PostRow entry={post} index={i + 1} />)}
+    </div>
+    <div style="margin-top: 1.8rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a class="btn" href="/blog/">All posts <span class="arr">→</span></a>
+      <a class="btn" href="/publications/">Publications <span class="arr">→</span></a>
+    </div>
+  </section>
+
+  <section class="container" style="padding-top: 3.5rem;">
+    <div class="section-head">
+      <h2><span class="n">06</span>Now</h2>
+      <span class="meta">what I am working on</span>
+    </div>
+
+    <ul class="about-list">
+      <li>
+        <span class="tag">Ψ</span>
+        <span>Exploring <strong>quantum architectures</strong> for scientific deep learning — scaling them past the toy-problem regime.</span>
+      </li>
+      <li>
+        <span class="tag">ML</span>
+        <span>Applying <strong>graph deep learning + network pharmacology</strong> to screen bioactive compounds from medicinal plants.</span>
+      </li>
+      <li>
+        <span class="tag">CHEM</span>
+        <span>Building <strong>non-destructive food-quality tools</strong> — spectroscopy, computer vision, and voltammetric fingerprints for Vietnamese agriculture.</span>
+      </li>
+    </ul>
+  </section>
+
+  <section class="container" style="padding-top: 3.5rem;">
+    <div class="section-head">
+      <h2><span class="n">07</span>Elsewhere</h2>
+      <span class="meta">find me at</span>
+    </div>
+
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.6rem;">
+      <a class="btn" href={SITE.github} rel="noopener" target="_blank">GitHub <span class="arr">↗</span></a>
+      <a class="btn" href={SITE.scholar} rel="noopener" target="_blank">Google Scholar <span class="arr">↗</span></a>
+      <a class="btn" href={SITE.x} rel="noopener" target="_blank">X <span class="arr">↗</span></a>
+      <a class="btn" href={SITE.email ? `mailto:${SITE.email}` : '#'} rel="noopener">Email <span class="arr">↗</span></a>
+      <a class="btn" href="/blog/rss.xml" rel="noopener">RSS feed <span class="arr">→</span></a>
+    </div>
+  </section>
+</Base>

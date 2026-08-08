@@ -1,0 +1,29 @@
+{
+  "name": "manifold-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "⟨λ⟩ Manifold — a mathematician's notebook. Math, quantum, AI for science. Built with Astro + KaTeX.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.11",
+    "@astrojs/sitemap": "^3.7.3",
+    "@fontsource/jetbrains-mono": "^5.1.1",
+    "@fontsource/space-grotesk": "^5.1.1",
+    "@fontsource/stix-two-text": "^5.1.1",
+    "astro": "^5.4.0",
+    "katex": "^0.16.21",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "pagefind": "^1.5.2"
+  }
+}
