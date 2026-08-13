@@ -1,14 +1,65 @@
 ---
 title: "Tối ưu hoá điều kiện chiết xuất dược liệu"
 date: 2026-08-11T14:00:00
-description: "Bài viết trình bày trọn một quy trình tối ưu hoá điều kiện chiết xuất hợp chất hoạt tính từ dược liệu: mô hình hoá hiệu suất bằng bề mặt đáp ứng bậc hai (RSM), ước lượng hệ số bằng bình phương tối thiểu, giải bài toán có ràng buộc bằng điều kiện KKT kèm chứng minh tính đủ, đọc kết quả bằng định lý vỏ bọc với kiểm chứng số của giá bóng, phân loại bề mặt bằng phân tích chính tắc (trị riêng của ma trận B), và lý thuyết thiết kế trung tâm tổ hợp (CCD) với tính trực giao và phương sai của hệ số. Ví dụ số đầy đủ: cực đại hiệu suất flavonoid với ba biến nhiệt độ, nồng độ ethanol và thời gian, nghiệm tối ưu (73,4 °C; 70%; 90 phút) với hiệu suất 14,64 mg/g, giá bóng của ethanol 0,057 và thời gian 0,040, trị riêng của ma trận B, sai số chuẩn của hệ số ước lượng, và phân tích độ nhạy Monte Carlo cho khoảng tin cậy của nghiệm tối ưu."
+description: "Bài viết dạy trọn một quy trình tối ưu hoá điều kiện chiết xuất dược liệu, tổ chức thành bốn tầng từ con số 0 đến trình độ nghiên cứu. Tầng 0: nền tảng toán cho người chưa biết gì (hàm số, đạo hàm, gradient, ma trận, Hessian, khai triển Taylor, trực giác về ràng buộc). Tầng 1: mô hình hoá hiệu suất bằng bề mặt đáp ứng bậc hai (RSM) — ước lượng hệ số bằng bình phương tối thiểu và lý thuyết thiết kế trung tâm tổ hợp (CCD). Tầng 2: giải và đọc nghiệm — phân loại bề mặt bằng phân tích chính tắc (trị riêng của ma trận B), điều kiện KKT kèm chứng minh tính đủ, giá bóng qua định lý vỏ bọc với kiểm chứng số. Tầng 3: trình độ nghiên cứu — độ nhạy Monte Carlo và khoảng tin cậy của nghiệm, quy trình thực hành hai giai đoạn với năm cạm bẫy định lượng, mở rộng đa mục tiêu và bền vững, giới hạn khi hàm thật không bậc hai. Ví dụ số xuyên suốt: cực đại hiệu suất flavonoid với ba biến nhiệt độ, nồng độ ethanol và thời gian; nghiệm (73,4 °C; 70%; 90 phút), hiệu suất 14,64 mg/g, giá bóng 0,057 và 0,040; mọi phép tính làm được bằng tay."
 topic: mathematics
 tags: [optimization, response-surface-methodology, kkt, design-of-experiments, shadow-price, extraction, phytochemistry, tutorial]
 featured: false
 draft: false
 ---
 
-Chiết xuất là một quyết định kỹ thuật điển hình: chọn nhiệt độ, dung môi và thời gian để thu được nhiều hợp chất hoạt tính nhất trong giới hạn của thiết bị, chi phí và độ ổn định của chính hợp chất đó. Đây là một bài toán tối ưu có ràng buộc, và mọi công cụ cần thiết đều có thể tính tay khi số biến ít. Bài viết này đi trọn một quy trình: mô hình hoá hiệu suất bằng bề mặt đáp ứng (response surface methodology), ước lượng hệ số, giải bài toán ràng buộc bằng điều kiện KKT với chứng minh đầy đủ, kiểm chứng nghiệm, đọc kết quả bằng giá bóng thông qua định lý vỏ bọc, phân loại bề mặt bằng phân tích chính tắc, và xác nhận bằng thực nghiệm trên một thiết kế trung tâm tổ hợp. Các con số dưới đây là nghiệm của chính bài toán được phát biểu, mọi phép tính đều làm được bằng tay.
+Chiết xuất là một quyết định kỹ thuật điển hình: chọn nhiệt độ, dung môi và thời gian để thu được nhiều hợp chất hoạt tính nhất trong giới hạn của thiết bị, chi phí và độ ổn định của chính hợp chất đó. Đây là một bài toán tối ưu có ràng buộc — và bài viết này dạy nó từ con số 0: không giả định người đọc đã biết đạo hàm, ma trận hay thống kê.
+
+**Bản đồ bài viết — bốn tầng, từ con số 0 đến nghiên cứu.** Tầng 0 trang bị đúng lượng toán cần thiết: hàm số và đạo hàm, gradient của hàm nhiều biến, ma trận và Hessian, khai triển Taylor, và trực giác đầu tiên về bài toán có ràng buộc. Tầng một (Phần A, H) xây mô hình: bề mặt đáp ứng bậc hai nói gì, các hệ số đến từ đâu (bình phương tối thiểu trên thiết kế CCD). Tầng hai (Phần G, B, C) giải và đọc nghiệm: phân loại hình dạng bề mặt bằng trị riêng, điều kiện KKT với chứng minh tính đủ, giá bóng và định lý vỏ bọc. Tầng ba (Phần I, D, E, F) là trình độ nghiên cứu: độ bất định của nghiệm qua Monte Carlo, quy trình thực hành hai giai đoạn với năm cạm bẫy định lượng, mở rộng đa mục tiêu và bền vững, và giới hạn khi hàm thật không bậc hai. Các con số dưới đây là nghiệm của chính bài toán được phát biểu, mọi phép tính đều làm được bằng tay.
+
+## Tầng 0 — Nền tảng: từ con số 0 đến công cụ tối ưu
+
+Tầng này dành cho người chưa từng học giải tích hay đại số tuyến tính. Mục tiêu: đọc xong, mọi ký hiệu của bài viết — đạo hàm, gradient, ma trận, Hessian, Taylor, ràng buộc — đều có một hình ảnh trong đầu. Mỗi khái niệm được gắn ngay với bài toán chiết xuất để không phải học "trừu tượng".
+
+### 0.1 Hàm số và đạo hàm — ngôn ngữ của sự thay đổi
+
+**Hàm số** là một quy tắc biến đầu vào thành đầu ra. Với bài toán của ta: $Y = f(T)$ nghĩa là "nếu chạy chiết ở nhiệt độ $T$, thu được hiệu suất $Y$". Vẽ lên giấy, mỗi cặp $(T, Y)$ là một điểm; nối các điểm đo lại được một đường cong. Hàm số là mô tả toán học của đường cong đó.
+
+**Đạo hàm** $f'(T)$ trả lời câu hỏi: đang chạy ở $T$, nếu tăng thêm một đơn vị thì $Y$ thay đổi bao nhiêu — ngay tại điểm đó, không phải trung bình trên cả dải. Về hình học, $f'(T)$ là độ dốc của tiếp tuyến với đường cong tại $T$. $f' > 0$: đường cong đang đi lên (tăng $T$ thì tăng $Y$); $f' < 0$: đang đi xuống. Với $Y = 9{,}2 + 0{,}30(T-60)$, đạo hàm là hằng số $0{,}30$: mỗi °C thêm vào tăng hiệu suất 0,30 mg/g ở mọi nơi — đường thẳng, không có đỉnh.
+
+**Đạo hàm bậc hai** $f''(T)$ là tốc độ thay đổi của độ dốc — độ cong của đường cong. $f'' < 0$: độ dốc giảm dần, đường cong uốn xuống (hình nón ngược — có đỉnh). $f'' > 0$: uốn lên (hình lòng chảo — có đáy).
+
+**Cực đại.** Tại đỉnh, đường cong không đi lên cũng không đi xuống: $f'(T) = 0$. Điểm thoả $f' = 0$ gọi là **điểm dừng**; nếu $f'' < 0$ tại đó thì là cực đại, nếu $f'' > 0$ thì là cực tiểu. Với parabola $Y = a + bT + cT^2$: đỉnh tại $T^* = -b/(2c)$. Thử bằng số: $Y = 9{,}2 + 0{,}30(T-60) - 0{,}014(T-60)^2$ có $T^* = 60 + 0{,}30/(2 \cdot 0{,}014) = 60 + 10{,}7 = 70{,}7$ °C. Toàn bộ bài viết — vì sao nghiệm nằm sát 75 °C, vì sao các hệ số cong quyết định độ cao đỉnh — bắt đầu từ phép tính parabola này.
+
+### 0.2 Hàm nhiều biến, đạo hàm riêng và gradient
+
+Thực tế có ba biến: $Y = f(T, C, t)$. Không vẽ được đồ thị 4 chiều, nhưng vẽ được **đường mức** (contour): trên mặt phẳng $(T, C)$, mỗi đường nối các điểm cho cùng một $Y$ — giống bản đồ địa hình, mỗi đường là một "cao độ".
+
+**Đạo hàm riêng** $\partial Y/\partial T$: giữ $C$ và $t$ cố định, chỉ cho $T$ thay đổi, rồi đo độ dốc theo hướng $T$. Nó trả lời: "tăng $T$ thêm 1 °C, giữ nguyên mọi thứ khác, thì $Y$ đổi bao nhiêu". Tương tự $\partial Y/\partial C$ và $\partial Y/\partial t$: ba con số, mỗi con số một hướng.
+
+**Gradient** gộp ba đạo hàm riêng thành một vector:
+$$\nabla Y = \left(\frac{\partial Y}{\partial T}, \frac{\partial Y}{\partial C}, \frac{\partial Y}{\partial t}\right).$$
+Gradient chỉ **hướng tăng nhanh nhất** của $Y$ tại điểm đang xét, và độ dài của nó là tốc độ tăng theo hướng đó. Hình ảnh: đứng trên sườn đồi, nhìn quanh — hướng nào dốc lên nhiều nhất, đó là hướng của gradient. **Điều kiện dừng** $\nabla Y = 0$ nghĩa là cả ba đạo hàm riêng cùng bằng 0: đứng trên đỉnh (hoặc đáy, hoặc yên ngựa — phân biệt ở mục sau).
+
+### 0.3 Ma trận, dạng toàn phương và Hessian
+
+**Vector** là một danh sách số có thứ tự; **ma trận** là một bảng số. Ma trận $B$ nhân với vector $u$ "trộn" các thành phần của $u$ theo luật: thành phần thứ $i$ của $Bu$ là tổng theo $j$ của $B_{ij}u_j$.
+
+**Dạng toàn phương** $u^\top B u$ (với $B$ đối xứng, tức $B_{ij} = B_{ji}$) khai triển thành
+$$u^\top B u = \sum_i B_{ii} u_i^2 + 2\sum_{i<j} B_{ij} u_i u_j.$$
+Nó là một con số đo "độ cong của hàm theo hướng $u$": số hạng chéo $B_{ii}u_i^2$ là độ cong dọc trục $i$, số hạng chéo phụ $2B_{ij}u_iu_j$ là phần cong "xoắn" do hai biến tương tác.
+
+**Hessian** của một hàm nhiều biến là ma trận các đạo hàm bậc hai. Với mô hình bậc hai $Y = \beta_0 + b^\top u + u^\top B u$, Hessian là hằng số $2B$ — độ cong không đổi trên toàn miền, đó là đặc trưng của hàm bậc hai.
+
+Dấu của $u^\top B u$ quyết định hình dạng: nếu $u^\top B u < 0$ cho mọi $u \neq 0$ (ma trận **âm xác định**), hàm lõm — một đỉnh duy nhất, và điểm dừng là cực đại toàn cục; nếu luôn dương, hàm lồi — một đáy; nếu đổi dấu theo hướng, bề mặt là **yên ngựa**. Tiêu chuẩn gọn nhất dùng **trị riêng** của $B$: mọi trị riêng âm — cực đại; mọi trị riêng dương — cực tiểu; trái dấu — yên ngựa. Trị riêng là "độ cong theo các hướng chính", và Phần G dùng chính tiêu chuẩn này.
+
+### 0.4 Khai triển Taylor — vì sao "mô hình bậc hai"
+
+Với hàm một biến trơn, quanh điểm $x_0$:
+$$f(x) \approx f(x_0) + f'(x_0)(x - x_0) + \tfrac{1}{2} f''(x_0)(x - x_0)^2,$$
+và phần bỏ đi — các số hạng bậc ba trở lên — là nhỏ khi $x$ gần $x_0$.
+Đây là **khai triển Taylor**: mọi hàm trơn đều xấp xỉ cục bộ bằng một đa thức bậc hai, và các hệ số của đa thức chính là các đạo hàm tại $x_0$. Bậc hai là bậc thấp nhất "biết cong" — đủ để bắt một đỉnh. Đó là lý do "mô hình bậc hai" không phải giả định tuỳ tiện: nó là xấp xỉ Taylor bậc hai, đúng cho mọi quá trình trơn trong lân cận đủ nhỏ. Và việc **tâm hoá** (đặt $u = T - 60$ thay vì dùng $T$) chính là chọn $x_0$ là tâm miền, để các hệ số khớp với đạo hàm tại đúng nơi dữ liệu được đo — chi tiết ở Phần A.
+
+### 0.5 Tối ưu có ràng buộc — trực giác đầu tiên
+
+Không ràng buộc: chỉ việc leo đến đỉnh đồi tự do ($\nabla Y = 0$). Có ràng buộc ($T \le 75$, $C \le 70$, $t \le 90$): đỉnh tự do có thể nằm **ngoài** vùng cho phép — khi đó nghiệm là điểm trên biên của vùng, "tựa" vào một hay nhiều ràng buộc. Hình ảnh: quả bóng trên mái vòm đặt trong một căn phòng; nếu đỉnh vòm nằm ngoài phòng, bóng không lăn tới đỉnh mà dừng ở chỗ tựa vào tường. Câu hỏi tự nhiên tiếp theo: nới bức tường ra một chút thì bóng lăn cao thêm bao nhiêu? Đó chính là **giá bóng** — nội dung của Phần B và Phần C.
+
+Tầng 0 kết thúc ở đây. Từ giờ mọi ký hiệu trong bài viết đều có nghĩa; Phần A bắt đầu xây mô hình cho bài toán chiết xuất.
 
 ## Phần A — Mô hình hoá bài toán chiết xuất
 
@@ -23,12 +74,71 @@ $$Y(x) = \beta_0 + \sum_i \beta_i x_i + \sum_i \beta_{ii} x_i^2 + \sum_{i<j} \be
 gọi là **bề mặt đáp ứng (response surface)**. Các hệ số được ước lượng từ một thiết kế thực nghiệm, thường là thiết kế trung tâm tổ hợp (central composite design): các điểm sao, điểm tâm và điểm giai thừa.
 ```
 
+### Kiến thức nền tảng — mô hình bậc hai nói gì
+
+Đọc Definition 2 cần ba ý nền, tất cả đều kiểm chứng được bằng tay.
+
+**Một là, "mô hình" nghĩa là gì.** Không có công thức của tự nhiên cho hiệu suất chiết: quan hệ giữa $Y$ và ba biến là một hàm số ta không biết, chỉ đo được ở vài điểm. Một **mô hình** là một khuôn dạng — một họ hàm số chứa vài con số chưa biết gọi là **hệ số** (coefficient), ký hiệu $\beta$. Các chữ $\beta_0, \beta_i, \beta_{ii}, \beta_{ij}$ trong công thức không phải là công thức: chúng là những ô trống mà thực nghiệm sẽ điền số vào. Với bài flavonoid ở ví dụ dưới, các ô đó được điền $\beta_0 = 9{,}2$, $\beta_u = 0{,}30$, v.v.
+
+**Hai là, vì sao lại chọn đa thức bậc hai.** Lý do sâu xa là khai triển Taylor (Tầng 0, mục 0.4): mọi hàm trơn đều xấp xỉ cục bộ được bởi một đa thức, và bậc hai là bậc thấp nhất "biết cong". Hàm bậc nhất $Y = \beta_0 + \beta_1 T$ là một đường thẳng — không thể có đỉnh. Muốn hiệu suất tăng rồi giảm, đường cong phải uốn xuống, và parabola $Y = \beta_0 + \beta_1 T + \beta_{11} T^2$ là dạng đơn giản nhất làm được điều đó. Đỉnh của parabola nằm tại $T^* = -\beta_1/(2\beta_{11})$; khi $\beta_{11} < 0$ đó là một cực đại. Bậc ba trở lên uốn phức tạp hơn nhưng cần nhiều dữ liệu hơn và hiếm khi được biện minh ở đây — bậc hai là điểm cân bằng mặc định.
+
+**Ba là, đọc từng loại số hạng.** Bốn nhóm:
+
+- $\beta_0$: giá trị của $Y$ khi mọi biến bằng 0. Với toạ độ tâm hoá (ví dụ dưới), đó chính là hiệu suất tại tâm miền.
+- $\beta_i x_i$: số hạng tuyến tính — tốc độ thay đổi của $Y$ theo $x_i$ tại điểm tham chiếu (độ dốc). $\beta_i > 0$: tăng $x_i$ thì $Y$ tăng lúc đầu; $\beta_i < 0$: ngược lại.
+- $\beta_{ii} x_i^2$: độ cong. $\beta_{ii} < 0$: lợi ích của $x_i$ bão hoà dần và có đỉnh; $\beta_{ii} > 0$: tăng nhanh dần, không có đỉnh trong miền.
+- $\beta_{ij} x_i x_j$: **tương tác** — hiệu quả của $x_i$ phụ thuộc vào mức của $x_j$. $\beta_{ij} > 0$: hai biến hỗ trợ nhau (nồng độ ethanol càng cao thì nhiệt độ càng có lợi); $\beta_{ij} < 0$: chúng triệt tiêu nhau. Đây là thứ mô hình tuyến tính không bao giờ mô tả được.
+
+```remark[Minh hoạ một biến]
+Nếu chỉ còn nhiệt độ, mô hình là $Y = 9{,}2 + 0{,}30u - 0{,}014u^2$ với $u$ là độ lệch quanh tâm (định nghĩa đầy đủ ở ví dụ dưới). Tại $u = 0$: $Y = 9{,}2$, độ dốc $0{,}30$. Độ dốc giảm dần theo $u$: tại $u = 10$ còn $0{,}30 - 2 \cdot 0{,}014 \cdot 10 = 0{,}02 \approx 0$ — đường cong vừa đạt đỉnh. Đỉnh chính xác tại $u^* = 0{,}30/(2 \cdot 0{,}014) \approx 10{,}7$, tức $T \approx 70{,}7$ °C. Toàn bộ câu chuyện của bài viết — vì sao nghiệm nằm sát 75 °C, vì sao các hệ số bậc hai quyết định mọi thứ — bắt đầu từ phép tính parabola này.
+```
+
+Đọc lại Definition 2 với ba ý trên: công thức là khuôn bậc hai, các $\beta$ là ô trống chờ dữ liệu điền, số hạng bậc hai là cơ chế tạo đỉnh, số hạng tương tác là cách hai biến ảnh hưởng lẫn nhau. Ví dụ dưới đây điền số vào từng ô.
+
 Mô hình bậc hai do Box và Wilson [^1] đề xuất cùng phương pháp leo dốc nhất trong thực nghiệm; trình bày đầy đủ của phương pháp bề mặt đáp ứng ở Myers, Montgomery và Anderson-Cook [^2], còn lý thuyết thiết kế thí nghiệm ở Montgomery [^6].
 
 ```example[Mô hình cụ thể: chiết xuất flavonoid]
-Xét chiết xuất flavonoid từ một dược liệu với ba biến: nhiệt độ $T$ (°C), nồng độ ethanol $C$ (%), thời gian $t$ (phút). Dùng toạ độ tâm hoá $u = T - 60$, $v = C - 55$, $w = t - 75$, mô hình ước lượng được là
+Xét chiết xuất flavonoid từ một dược liệu với ba biến quyết định: nhiệt độ $T$ (°C), nồng độ ethanol $C$ (%), thời gian $t$ (phút). Trước hết là **biên vật lý** — dải giá trị mà thiết bị và nguyên liệu cho phép vận hành: $T \in [40, 80]$, $C \in [30, 80]$, $t \in [30, 120]$. Đây không phải điều kiện ta chọn mà là giới hạn của chính hệ thống: dưới 40 °C thiết bị không đạt nhiệt, trên 80 °C dược liệu cháy xém; ngoài [30, 80]% ethanol không còn là pha chiết mong muốn; và mỗi ca vận hành không kéo dài quá 120 phút. Ngoài miền này mô hình không có ý nghĩa vì chưa từng đo ở đó.
+
+**Toạ độ tâm hoá.** Điểm giữa của miền thực nghiệm là $(T, C, t) = (60, 55, 75)$ — trung bình của từng khoảng. Thay vì đo $T$ tuyệt đối, ta đo độ lệch khỏi điểm giữa đó:
+$$u = T - 60, \qquad v = C - 55, \qquad w = t - 75.$$
+Vậy $u = 10$ nghĩa là "nhiệt độ 70 °C — cao hơn điểm giữa miền 10 °C", $u = -5$ nghĩa là "55 °C — thấp hơn điểm giữa 5 °C", còn $u = 0$ chính là tâm miền:
+
+| $T$ (°C) | 40 | 60 | 80 |
+|---|---|---|---|
+| $u = T - 60$ | −20 | 0 | +20 |
+
+Vì sao lại chọn điểm giữa làm gốc? Trước hết, dời gốc **không hề thay đổi bề mặt**: $u = T - 60$ chỉ là đổi điểm mốc đo, như đo độ cao so với mực nước biển hay so với sân nhà — ngọn núi vẫn y nguyên, chỉ số 0 đổi chỗ. Cùng một bề mặt, cùng đỉnh, cùng nghiệm tối ưu ở Phần B; chỉ có cách đọc các con số trong mô hình thay đổi.
+
+Và đó chính là điểm cốt lõi: **với toạ độ tâm hoá, mỗi hệ số là một đạo hàm của hàm thật tại tâm**. Viết khai triển Taylor quanh tâm $T_0 = 60$:
+$$Y(T) \approx Y(T_0) + Y'(T_0)\,(T - T_0) + \tfrac{1}{2}Y''(T_0)\,(T - T_0)^2,$$
+đối chiếu với mô hình $Y = \beta_0 + \beta_1 u + \beta_{11}u^2$ (với $u = T - 60$) cho:
+$$\beta_0 = Y(T_0), \qquad \beta_1 = Y'(T_0), \qquad \beta_{11} = \tfrac{1}{2}Y''(T_0).$$
+Nghĩa là: $\beta_0$ là chính hiệu suất tại tâm, $\beta_1$ là độ dốc thật của bề mặt ngay tại tâm, $\beta_{11}$ là nửa độ cong tại tâm. Với ba biến, ba hệ số tuyến tính $0{,}30$, $0{,}26$, $0{,}10$ chính là ba thành phần của gradient $\nabla Y$ tại tâm — trả lời trực tiếp câu hỏi "đẩy mỗi biến lên một chút quanh tâm thì Y tăng bao nhiêu". Mô hình nói về đúng nơi dữ liệu được đo, và đúng nơi nó đáng tin nhất.
+
+**Hệ số hằng là gì.** Trong mô hình $Y = \beta_0 + \beta_1 u + \beta_{11}u^2$, hệ số hằng $\beta_0$ là giá trị mô hình dự đoán khi mọi biến bằng 0 — chỗ đường cong cắt trục tung, còn gọi là tung độ gốc (intercept). Điều quan trọng cần thấy: $\beta_0$ không phải là thông số vật lý của quá trình chiết, nó là **thuộc tính của hệ toạ độ** — gốc đặt ở đâu, $\beta_0$ là giá trị dự đoán tại đúng gốc đó. Với toạ độ tâm hoá, gốc $u = 0$ chính là tâm miền (60 °C, 55 %, 75 phút), một điểm thật đã chạy trong thiết kế, nên $\beta_0 = 9{,}2$ mg/g đọc được ngay: "hiệu suất dự đoán tại tâm". Còn $\beta_1$ là độ dốc tại gốc: vì $u = T - 60$ nên $\beta_1 = Y'(60)$ — độ dốc thật của bề mặt ngay tại tâm, chứ không phải ở đâu xa.
+
+Nếu không tâm hoá, gốc rơi về $T = 0$ °C — điểm cách điểm đo gần nhất 40 độ, nằm xa ngoài miền vật lý [40, 80], chưa bao giờ chạy, và trên hết, **số 0 của thang Celsius chỉ là quy ước** (nước đóng băng), không liên quan gì đến phản ứng chiết. Khi đó $\beta_0$ trở thành "hiệu suất dự đoán tại 0 °C", $\beta_1$ thành độ dốc tại 0 °C — những con số do hệ toạ độ sinh ra, không phải do dữ liệu; đổi sang thang Fahrenheit, mọi hệ số lại thành con số khác dù bề mặt không đổi. Phép khớp không tệ hơn chút nào — cùng bề mặt, cùng $R^2$, cùng dự đoán trong [40, 80] — chỉ có cách đọc từng hệ số là vỡ tan.
+
+**Vấn đề thứ hai là số học, không chỉ cách đọc.** Trên các điểm thiết kế, hai cột $T$ và $T^2$ cùng tăng gần như song song: tương quan giữa chúng khoảng 0,996. Hai cột gần phụ thuộc tuyến tính nghĩa là dữ liệu không phân biệt nổi "phần tăng do số hạng bậc nhất" với "phần tăng do số hạng bậc hai" — phép khớp phải chia một nguồn biến thiên gần như giống hệt cho hai hệ số. Hệ quả hiện ra trong ma trận $X^\top X$: hai cột gần song song làm các phần tử của $(X^\top X)^{-1}$ rất lớn, kéo $\mathrm{Var}(\hat\beta) = \sigma^2(X^\top X)^{-1}$ phình to — sai số chuẩn tăng, hai ước lượng kéo ngược nhau, và chỉ cần nhiễu đổi nhẹ là hai con số dao động mạnh dù bề mặt khớp hầu như không đổi. Sau tâm hoá, $u$ nhận các giá trị đối xứng quanh 0 (−20, 0, +20 trên trục $T$) còn $u^2$ nhận 400, 0, 400: $u$ là hàm lẻ, $u^2$ là hàm chẵn, tích $u \cdot u^2$ triệt tiêu trên mọi thiết kế đối xứng — tương quan đúng bằng 0, $X^\top X$ gần chéo, mỗi hệ số được ước lượng độc lập với sai số nhỏ (định lượng ở Phần H).
+
+| Biến | Hai cột | Tương quan | Hệ quả |
+|---|---|---|---|
+| thô | $T$, $T^2$ | ≈ 0,996 | sai số chuẩn phình to, hai hệ số kéo ngược nhau |
+| tâm hoá | $u$, $u^2$ | 0 | hai hệ số ước lượng độc lập, sai số nhỏ |
+
+Còn một lợi ích thực hành: ba biến có ba đơn vị khác nhau (°C, %, phút), nhưng sau khi tâm hoá cả ba hệ số cùng đo "mỗi đơn vị lệch khỏi tâm góp bao nhiêu mg/g" — nhìn thẳng vào nhau thấy nhiệt độ (0,30) và nồng độ (0,26) dẫn dắt, thời gian (0,10) yếu hơn. Điểm giữa (60, 55, 75) cũng chính là tâm của thiết kế CCD ở Phần H — nơi đặt các lần lặp, nơi dữ liệu dày nhất.
+
+**Đọc mô hình từng cụm.** Mô hình ước lượng được là
 $$Y = 9{,}2 + 0{,}30u + 0{,}26v + 0{,}10w - 0{,}014u^2 - 0{,}009v^2 - 0{,}002w^2 + 0{,}005uv,$$
-với $Y$ tính theo mg/g. Ràng buộc: $T \le 75$ (trên mức này flavonoid phân huỷ), $C \le 70$ (giới hạn chi phí dung môi), $t \le 90$ (ngân sách một ca chiết), cùng biên vật lý $T \in [40, 80]$, $C \in [30, 80]$, $t \in [30, 120]$.
+với $Y$ tính theo mg/g. Đọc theo từng nhóm số hạng:
+
+- $9{,}2$ — tại tâm miền, dự đoán thu được 9,2 mg/g.
+- $0{,}30u + 0{,}26v + 0{,}10w$ — gần tâm, mỗi °C tăng thêm góp ≈ 0,30 mg/g, mỗi % ethanol ≈ 0,26 mg/g, mỗi phút ≈ 0,10 mg/g.
+- $-0{,}014u^2 - 0{,}009v^2 - 0{,}002w^2$ — các số hạng bậc hai âm: lợi ích của mỗi biến càng xa tâm càng teo dần, bề mặt cong xuống và có đỉnh; dấu âm chính là cơ chế "hiệu suất có cực đại trong miền".
+- $+0{,}005uv$ — tương tác: hiệu quả của nhiệt độ lớn hơn khi ethanol đậm đặc hơn (và ngược lại); hai biến hỗ trợ nhau nhẹ. Không có số hạng $uw$, $vw$ nghĩa là thời gian gần như không tương tác với hai biến kia.
+
+**Hai loại ràng buộc.** Bài toán có hai lớp ràng buộc khác bản chất. Lớp thứ nhất là **ràng buộc vận hành** — quy tắc do người vận hành đặt ra: $T \le 75$ (trên 75 °C flavonoid bắt đầu phân huỷ, thu được chất đã hỏng), $C \le 70$ (ngân sách dung môi của một mẻ), $t \le 90$ (một ca chiết không quá 90 phút). Lớp thứ hai là **biên vật lý** nói trên: $T \in [40, 80]$, $C \in [30, 80]$, $t \in [30, 120]$. Khác nhau ở chỗ ràng buộc vận hành là lựa chọn — có thể nới lỏng nếu trả thêm chi phí, và Phần D sẽ định lượng đúng "cái giá" đó bằng giá bóng — còn biên vật lý là dữ kiện không đổi: ngoài chúng, thí nghiệm không chạy được hoặc mô hình hết hiệu lực. Trong bài toán này $T \le 75$ chặt hơn $T \le 80$, nên biên trên của $T$ không bao giờ hoạt động; hai ràng buộc thực sự căng là $C \le 70$ và $t \le 90$.
 ```
 
 Hai nhận xét về mô hình. Thứ nhất, nó có dạng lõm quanh đỉnh (các hệ số bình phương âm), đúng cấu trúc "hiệu suất có đỉnh trong miền". Thứ hai, nó là một ước lượng: các hệ số có sai số thực nghiệm, và điều này quyết định quy trình xác nhận ở Phần D.
@@ -90,6 +200,64 @@ $$Y = 9{,}208 + 0{,}3004u + 0{,}2612v + 0{,}0881w - 0{,}0298u^2 - 0{,}0312v^2 - 
 Ba nhận xét. Thứ nhất, mọi hệ số rơi trong 2 SE của giá trị thật (lớn nhất 1,5 SE) — phép khớp không chệch, và một bộ dữ liệu khác sẽ cho hàm hơi khác, đúng quy luật $\hat\beta \sim N(\beta, \sigma^2(X^\top X)^{-1})$. Thứ hai, các hệ số lệch nhất đều thuộc khối bậc hai: $u^2 = -0{,}0298$ gấp đôi giá trị thật, $v^2 = -0{,}0312$ gấp 3,5 lần — độ cong là phần kém xác định nhất của dữ liệu, đúng kết luận của Phần I. Thứ ba, hậu quả: tại điểm tối ưu, các toạ độ bậc hai cỡ 200 (u² ≈ 179, v² = w² = 225), nên một sai số 0,01 của hệ số cong khuếch đại thành sai số cỡ 2 mg/g ở giá trị đỉnh — cơ chế khiến khoảng tin cậy của Y* rộng (Phần I), và lý do quy trình xác nhận ở Phần D không thể bỏ qua.
 ```
 
+## Phần H — Thiết kế thực nghiệm cho mô hình bậc hai
+
+Mô hình bậc hai ba biến có $p = 1 + 3 + 3 + 3 = 10$ tham số — mười con số cần điền. Câu hỏi của phần này: chạy thí nghiệm ở những điểm nào để mười hệ số đó được ước lượng tốt nhất và để kiểm tra được mô hình. Câu trả lời kinh điển là thiết kế trung tâm tổ hợp (CCD), do Box và Wilson [^1] đề xuất cùng bề mặt đáp ứng.
+
+### Kiến thức nền tảng — CCD là gì
+
+**Ý tưởng.** Mỗi thí nghiệm là một phép đo $Y$ tại một điểm $(T, C, t)$. Mô hình có 10 hệ số nên phải chạy ít nhất 10 điểm — nhưng chạy ở đâu cũng quan trọng như chạy bao nhiêu lần, vì vị trí các điểm quyết định độ chính xác của từng hệ số. CCD là một công thức vị trí: ghép ba khối điểm quanh tâm miền, nên có tên "tổ hợp" (composite):
+
+- **8 điểm giai thừa $(\pm 1)^3$** — tám góc của khối lập phương quanh tâm, mỗi biến lấy mức cao/thấp. Đây là thiết kế giai thừa $2^k$ kinh điển: các góc tách hiệu ứng chính và tương tác hiệu quả nhất (mỗi hệ số tuyến tính và tương tác được ước lượng với phương sai nhỏ nhất có thể với số điểm này).
+- **Điểm tâm $(0, 0, 0)$, lặp $n_c$ lần** — chạy đi chạy lại cùng một điều kiện. Hai vai trò: (a) các lần lặp đo **sai số thuần** (pure error) — độ lệch giữa các lần chạy giống hệt nhau chính là thước đo nhiễu $\sigma$; (b) phát hiện **độ cong**: nếu trung bình tám góc cao hơn hoặc thấp hơn hẳn tâm, bề mặt có uốn — cần các số hạng bậc hai.
+- **6 điểm sao $(\pm\alpha, 0, 0)$, $(0, \pm\alpha, 0)$, $(0, 0, \pm\alpha)$** — nằm trên ba trục, cách tâm khoảng $\alpha$. Vai trò của chúng là tách riêng ba độ cong $u^2$, $v^2$, $w^2$: trên tám góc cả ba đều bằng 1 nên không phân biệt được (ba cột trùng nhau, $X^\top X$ suy biến — không ước lượng riêng được); điểm sao làm mỗi hướng có một cột độ cong riêng.
+
+**Vì sao $\alpha = 2^{k/4}$?** Đây là chỗ lý thuyết. Tiêu chí **tính quay (rotatability)**: phương sai dự đoán của $\hat Y(x)$ tại một điểm chỉ phụ thuộc khoảng cách từ điểm đó tới tâm, không phụ thuộc hướng — bề mặt dự đoán đáng tin như nhau theo mọi hướng. Trực giác: các điểm sao phải "bù" đúng cho khối giai thừa để các mô-men bậc bốn của thiết kế khớp với mô-men của phân phối đối xứng cầu; điều kiện chính xác là
+$$\alpha = 2^{k/4}, \qquad \alpha^4 = 2^k,$$
+với $k = 3$: $\alpha = 2^{3/4} = 1{,}682$. Việc $\alpha > 1$ có nghĩa các điểm sao nằm ngoài khối giai thừa — cần thiết để độ cong theo từng hướng được đo với độ chính xác tương đương các hiệu ứng tuyến tính.
+
+**Đếm bậc tự do.** $n = 8 + 6 + 3 = 17$ thí nghiệm cho 10 tham số, còn 7 bậc tự do cho sai số — vừa đủ để kiểm định lack-of-fit (Phần D) và để sai số chuẩn có ý nghĩa. Tâm $(0, 0, 0)$ chính là điểm $(60, 55, 75)$ của bài toán: toàn bộ thiết kế đối xứng quanh đúng tâm miền đã dùng để tâm hoá ở Phần A. Hai khái niệm gắn với nhau — mô hình bậc hai được ước lượng và đọc quanh điểm có nhiều dữ liệu nhất.
+
+Cấu trúc và tính chất đầy đủ của CCD trình bày ở Montgomery [^6] và Box–Draper [^7].
+
+```definition[Thiết kế trung tâm tổ hợp (CCD)]
+**Thiết kế trung tâm tổ hợp** gồm ba khối: $2^3 = 8$ điểm giai thừa $(\pm 1)^3$, $2k = 6$ điểm sao $(\pm\alpha, 0, 0)$, $(0, \pm\alpha, 0)$, $(0, 0, \pm\alpha)$, và $n_c$ điểm lặp tại tâm. Khoảng cách sao $\alpha$ chọn theo tính quay (rotatability): phương sai dự đoán của $\hat Y(x)$ chỉ phụ thuộc $\|x\|$, không phụ thuộc hướng, khi
+$$\alpha = 2^{k/4}, \qquad \text{ở đây } \alpha = 2^{3/4} = 1{,}682, \qquad \alpha^4 = 2^k = 8.$$
+Với $k = 3$ và $n_c = 3$: tổng cộng 17 thí nghiệm cho 10 tham số — 7 bậc tự do dành cho sai số (Hình 1).
+```
+
+<figure style="margin:1.8em 0;"><img src="/img/opt/ccd-design.svg" alt="Thiết kế trung tâm tổ hợp ba biến" style="display:block;width:100%;max-width:640px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 1 — CCD cho ba biến: 8 điểm giai thừa (teal) tại đỉnh khối lập phương (±1)³, 6 điểm sao (vàng) tại ±α = ±1,682 trên các trục, và tâm lặp 3 lần (xanh). Tính quay: α⁴ = 2³ = 8.</figcaption></figure>
+
+```remark[Trực giao và phương sai của hệ số]
+Với $\alpha = 2^{k/4}$, ma trận $X^\top X$ của CCD có cấu trúc khối chéo: khối tuyến tính $\{u, v, w\}$, khối tương tác $\{uv, uw, vw\}$, khối $\{1, u^2, v^2, w^2\}$. Mọi tích chéo giữa hai khối khác nhau bằng 0: $\sum u_i = 0$, $\sum u_i v_i = 0$, $\sum u_i^2 v_i = 0$, $\sum u_i v_i w_i = 0$ — nên hệ số thuộc các khối khác nhau ước lượng độc lập. Khối tuyến tính chéo, với $\sum u_i^2 = 8 + 2\alpha^2 = 13{,}66$ (8 điểm giai thừa cộng 2 điểm sao trên trục $u$):
+$$\mathrm{Var}(\hat\beta_u) = \frac{\sigma^2}{\sum u_i^2}, \qquad \mathrm{SE}(\hat\beta_u) = \frac{\sigma}{\sqrt{13{,}66}} = 0{,}0135 \ \text{với } \sigma = 0{,}05.$$
+Sai số chuẩn dưới 5% giá trị hệ số $0{,}30$: dữ liệu đủ để phân biệt các hệ số. Vai trò của khối sao: nếu chỉ có 8 điểm giai thừa và tâm, thì $u^2 = v^2 = w^2$ trên mọi điểm của thiết kế — ba cột trùng nhau, $X^\top X$ suy biến, và $\beta_{uu}, \beta_{vv}, \beta_{ww}$ không ước lượng riêng được. Điểm sao tách các hướng: tại $(\pm\alpha, 0, 0)$ chỉ $u^2 \neq 0$, tại $(0, \pm\alpha, 0)$ chỉ $v^2 \neq 0$. Độ cong theo từng hướng chỉ đo được nhờ khối này — lý do CCD cần điểm sao dù chúng nằm ngoài khối giai thừa.
+```
+
+## Phần G — Hình học bậc hai: phân tích chính tắc
+
+Ma trận $B$ trong dạng toàn phương mang toàn bộ thông tin về hình dạng bề mặt. Vì $B$ đối xứng, nó chéo hoá trực giao được: $B = Q\Lambda Q^\top$ với $Q$ trực giao và $\Lambda = \mathrm{diag}(\lambda_1, \ldots, \lambda_k)$. Đây là khung của phân tích chính tắc trong lý thuyết bề mặt đáp ứng [^7].
+
+```definition[Phân tích chính tắc]
+Gọi $u^*$ là điểm dừng ($Bu^* = -b/2$) và $w = Q^\top (u - u^*)$ là toạ độ theo các trục chính. Mô hình bậc hai trở thành dạng chính tắc
+$$Y = Y(u^*) + \sum_{i=1}^k \lambda_i w_i^2,$$
+vì $u^\top B u - u^{*\top} B u^* = (u - u^*)^\top B (u - u^*) = w^\top \Lambda w$. Phân loại điểm dừng theo dấu các $\lambda_i$: toàn âm — cực đại; toàn dương — cực tiểu; trái dấu — yên ngựa; có $\lambda_i = 0$ — hệ thống rãnh (ridge) dọc trục thứ $i$. Đây là tiêu chuẩn phân loại đầy đủ của bề mặt bậc hai, không cần vẽ.
+```
+
+```example[Trị riêng của ma trận B trong bài toán]
+Với mô hình flavonoid, $B$ có khối $(u, v)$ không chéo do hệ số tương tác:
+$$B = \begin{pmatrix} -0{,}014 & 0{,}0025 & 0 \\ 0{,}0025 & -0{,}009 & 0 \\ 0 & 0 & -0{,}002 \end{pmatrix}.$$
+Trị riêng của khối $(u,v)$ là nghiệm của $\lambda^2 + 0{,}023\lambda + 0{,}00011975 = 0$ (tổng $-0{,}023$, tích $0{,}00011975$):
+$$\lambda_1 = -0{,}00796, \qquad \lambda_2 = -0{,}01504,$$
+cùng $\lambda_3 = -0{,}002$. Cả ba âm — điểm dừng là cực đại; tích $4\lambda_1\lambda_2 = 4{,}79 \times 10^{-4}$ chính là định thức của Hessian trên mặt phẳng $(u,v)$ sẽ dùng ở Phần B. Vector riêng ứng với $\lambda_1$ là $(0{,}38; 0{,}92)$: trục dài của các elíp mức, hợp với trục $u$ một góc $67{,}5°$; vector ứng với $\lambda_2$ là $(0{,}92; -0{,}38)$, vuông góc với nó, góc $-22{,}5°$ (Hình 2). Hệ số tương tác $uv$ không đổi dấu các $\lambda_i$ nhưng làm xoay các trục chính khỏi trục toạ độ: nếu $\beta_{uv} = 0$, khối $(u,v)$ đã chéo sẵn và các trục chính trùng trục toạ độ.
+```
+
+<figure style="margin:1.8em 0;"><img src="/img/opt/canonical.svg" alt="Phân tích chính tắc của bề mặt đáp ứng" style="display:block;width:100%;max-width:620px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 2 — Đường mức của Y(u, v) tại w = 25. Các elíp đồng tâm tại cực đại tự do (14,0; 18,3), trục dài nghiêng 67,5° (hướng (0,38; 0,92), λ = −0,0080), trục ngắn vuông góc (λ = −0,0150). Đường đỏ là biên C = 70; tối ưu ràng buộc (13,4; 15,0) nằm trên đó.</figcaption></figure>
+
+```remark[Đọc kết quả từ phân tích chính tắc]
+Trục dài (ứng với $\lambda_1$ gần 0 nhất) là hướng bề mặt "phẳng nhất": đi xa đỉnh theo hướng này làm hiệu suất giảm chậm nhất. Với quyết định thực tế: quanh nghiệm tối ưu, thay đổi theo hướng $(0{,}38; 0{,}92)$ trong mặt phẳng $(T, C)$ ít rủi ro hơn thay đổi vuông góc với nó; nếu giai đoạn xác nhận lệch khỏi dự đoán, biết hướng nhạy cảm giúp chọn điểm kiểm tra. Khi có $\lambda_i$ gần 0, bề mặt gần suy biến: nhiều tổ hợp cho hiệu suất gần như nhau và "nghiệm" kém xác định — phải cảnh giác với khẳng định nghiệm duy nhất. Trong bài toán này mọi $\lambda_i$ cách 0 đủ xa, nên đỉnh được xác định tốt.
+```
+
 ## Phần B — Giải bằng điều kiện KKT
 
 ```theorem[Điều kiện KKT cho bài toán chiết xuất]
@@ -115,9 +283,9 @@ Do $Y$ lõm, $Y(x) \le Y(x^*) + \nabla Y(x^*)^\top (x - x^*) \le Y(x^*)$. Vậy 
 ```example[Giải số]
 Điều kiện dừng không ràng buộc: $\partial Y/\partial u = 0{,}30 - 0{,}028u + 0{,}005v = 0$; $\partial Y/\partial v = 0{,}26 - 0{,}018v + 0{,}005u = 0$; $\partial Y/\partial w = 0{,}10 - 0{,}004w = 0$. Nghiệm: $u = 13{,}99$ ($T = 74{,}0$), $v = 18{,}33$ ($C = 73{,}3$), $w = 25$ ($t = 100$). Điểm này vi phạm $C \le 70$ và $t \le 90$: cực đại không ràng buộc không khả thi.
 
-Kẹp hai ràng buộc hoạt động: $v = 15$ ($C = 70$) và $w = 15$ ($t = 90$). Phương trình còn lại theo $u$: $0{,}30 - 0{,}028u + 0{,}005 \cdot 15 = 0$, cho $u = 13{,}39$ ($T = 73{,}4$). Kiểm tra: $T = 73{,}4 \le 75$ — thoả. Nghiệm tối ưu: $(73{,}4°C;\ 70\%;\ 90\ \text{phút})$, hiệu suất $Y^* = 14{,}64$ mg/g (Hình 1).
+Kẹp hai ràng buộc hoạt động: $v = 15$ ($C = 70$) và $w = 15$ ($t = 90$). Phương trình còn lại theo $u$: $0{,}30 - 0{,}028u + 0{,}005 \cdot 15 = 0$, cho $u = 13{,}39$ ($T = 73{,}4$). Kiểm tra: $T = 73{,}4 \le 75$ — thoả. Nghiệm tối ưu: $(73{,}4°C;\ 70\%;\ 90\ \text{phút})$, hiệu suất $Y^* = 14{,}64$ mg/g (Hình 3).
 
-Nhân tử KKT: $\lambda_C = \partial Y/\partial v = 0{,}26 - 0{,}018 \cdot 15 + 0{,}005 \cdot 13{,}39 \approx 0{,}057$; $\lambda_t = \partial Y/\partial w = 0{,}10 - 0{,}004 \cdot 15 = 0{,}040$; $\partial Y/\partial u = 0$ tại nghiệm — nhiệt độ không phải ràng buộc hoạt động. Hessian của $Y$ theo $(u,v,w)$ âm xác định (định thức $4{,}79 \times 10^{-4} > 0$ trên mặt phẳng $(u,v)$, phần tử chéo âm), nên điểm dừng là cực đại toàn cục.
+Nhân tử KKT: $\lambda_C = \partial Y/\partial v = 0{,}26 - 0{,}018 \cdot 15 + 0{,}005 \cdot 13{,}39 \approx 0{,}057$; $\lambda_t = \partial Y/\partial w = 0{,}10 - 0{,}004 \cdot 15 = 0{,}040$; $\partial Y/\partial u = 0$ tại nghiệm — nhiệt độ không phải ràng buộc hoạt động. Hessian của $Y$ theo $(u,v,w)$ âm xác định (định thức $4{,}79 \times 10^{-4} > 0$ trên mặt phẳng $(u,v)$ — đã tính ở Phần G —, phần tử chéo âm), nên điểm dừng là cực đại toàn cục.
 ```
 
 ```remark[Điều kiện bậc hai cho bài toán có ràng buộc]
@@ -134,7 +302,7 @@ trong đó $\lambda_j$ là nhân tử KKT của ràng buộc $j$: **giá bóng �
 *Chứng minh.* $Y^*(b) = Y(x^*(b))$, nên $\partial Y^*/\partial b_j = \nabla Y(x^*) \cdot \partial x^*/\partial b_j$. Từ điều kiện dừng, $\nabla Y(x^*) = \sum_i \lambda_i \nabla g_i(x^*)$, suy ra $\partial Y^*/\partial b_j = \sum_i \lambda_i \nabla g_i(x^*) \cdot \partial x^*/\partial b_j$. Với ràng buộc hoạt động, $g_i(x^*(b)) = b_i$ với mọi $b$ trong lân cận; đạo hàm toàn phần hai vế theo $b_j$: $\nabla g_i(x^*) \cdot \partial x^*/\partial b_j = \delta_{ij}$. Chỉ số hạng $i = j$ còn lại: $\partial Y^*/\partial b_j = \lambda_j$. $\blacksquare$
 ```
 
-<figure style="margin:1.8em 0;"><img src="/img/opt/extraction.svg" alt="Bề mặt đáp ứng chiết xuất dược liệu" style="display:block;width:100%;max-width:680px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 1 — Bề mặt đáp ứng Y(T, C) tại t = 90 phút. Miền khả thi (tô xanh) bị chặn bởi C = 70 và T = 75; tối ưu (73,4 ; 70) nằm trên biên C = 70. Cực đại không ràng buộc (74,0 ; 73,3) nằm ngoài miền.</figcaption></figure>
+<figure style="margin:1.8em 0;"><img src="/img/opt/extraction.svg" alt="Bề mặt đáp ứng chiết xuất dược liệu" style="display:block;width:100%;max-width:680px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 3 — Bề mặt đáp ứng Y(T, C) tại t = 90 phút. Miền khả thi (tô xanh) bị chặn bởi C = 70 và T = 75; tối ưu (73,4 ; 70) nằm trên biên C = 70. Cực đại không ràng buộc (74,0 ; 73,3) nằm ngoài miền.</figcaption></figure>
 
 ## Phần C — Kiểm chứng và độ nhạy
 
@@ -150,10 +318,10 @@ Nghiệm KKT nên được kiểm chứng bằng cách so sánh với các đi�
 
 Ba kết luận từ bảng. Nghiệm $(73{,}4; 70; 90)$ cho hiệu suất cao nhất trong số các điểm khả thi. Chạm biên nhiệt độ $T = 75$ không giúp ích ($14{,}60 < 14{,}64$) — ràng buộc nhiệt độ không hoạt động, giữ 73–74 °C là đủ. Kéo dài thời gian tới 100 phút tăng hiệu suất lên 14,84 nhưng vi phạm ngân sách ca chiết.
 
-<figure style="margin:1.8em 0;"><img src="/img/opt/extraction-check.svg" alt="Kiểm chứng nghiệm và giá bóng" style="display:block;width:100%;max-width:680px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 2 — (a) Hiệu suất tại các điểm ứng viên: tối ưu (teal) cao nhất trong miền khả thi; điểm (73,4 ; 70 ; 100) cao hơn nhưng vi phạm thời gian (đỏ). (b) Giá bóng: nới ethanol thêm 1 điểm % tăng hiệu suất 0,057; thêm 1 phút tăng 0,040; nhiệt độ có giá bóng 0.</figcaption></figure>
+<figure style="margin:1.8em 0;"><img src="/img/opt/extraction-check.svg" alt="Kiểm chứng nghiệm và giá bóng" style="display:block;width:100%;max-width:680px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 4 — (a) Hiệu suất tại các điểm ứng viên: tối ưu (teal) cao nhất trong miền khả thi; điểm (73,4 ; 70 ; 100) cao hơn nhưng vi phạm thời gian (đỏ). (b) Giá bóng: nới ethanol thêm 1 điểm % tăng hiệu suất 0,057; thêm 1 phút tăng 0,040; nhiệt độ có giá bóng 0.</figcaption></figure>
 
 ```remark[Giá bóng và quyết định]
-Hai ràng buộc hoạt động có giá bóng dương; ràng buộc nhiệt độ có giá bóng 0 (Hình 2b). Cách đọc: mua thêm 10 phút cho một ca chiết tăng hiệu suất $14{,}84 - 14{,}64 = 0{,}20$ mg/g — quyết định này là so sánh chi phí vận hành của 10 phút với 0,20 mg/g. Nâng giới hạn ethanol từ 70 lên 71% tăng hiệu suất xấp xỉ 0,057 mg/g — cơ sở định lượng để đàm phán giá dung môi. Lưu ý độ tăng biên giảm dần: bề mặt lõm nên giá bóng chỉ đúng trong lân cận nghiệm; muốn biết giá trị của một thay đổi lớn phải giải lại bài toán.
+Hai ràng buộc hoạt động có giá bóng dương; ràng buộc nhiệt độ có giá bóng 0 (Hình 4b). Cách đọc: mua thêm 10 phút cho một ca chiết tăng hiệu suất $14{,}84 - 14{,}64 = 0{,}20$ mg/g — quyết định này là so sánh chi phí vận hành của 10 phút với 0,20 mg/g. Nâng giới hạn ethanol từ 70 lên 71% tăng hiệu suất xấp xỉ 0,057 mg/g — cơ sở định lượng để đàm phán giá dung môi. Lưu ý độ tăng biên giảm dần: bề mặt lõm nên giá bóng chỉ đúng trong lân cận nghiệm; muốn biết giá trị của một thay đổi lớn phải giải lại bài toán.
 ```
 
 ```example[Kiểm chứng số của định lý vỏ bọc]
@@ -176,6 +344,49 @@ Thứ nhất, độ tăng thật $Y^*(71) - Y^*(70) = 0{,}048$ nằm giữa $\la
 Với hàm lõm, điểm dừng là cực đại toàn cục: không cần dò nhiều điểm khởi đầu. Hessian âm xác định ở Phần B khẳng định $Y$ lõm quanh nghiệm. Nếu mô hình có số hạng tương tác lớn hoặc hệ số bình phương dương, bề mặt có thể có yên ngựa hoặc hai đỉnh — khi đó phải vẽ bề mặt và dùng nhiều điểm khởi đầu, không tin vào một điểm dừng.
 ```
 
+## Phần I — Độ nhạy Monte Carlo và khoảng tin cậy của nghiệm
+
+Mọi con số ở các phần trước — hệ số, nghiệm $(73{,}4; 70; 90)$, $Y^* = 14{,}64$ — là hàm của vector ước lượng $\hat\beta$, và $\hat\beta$ là một vector ngẫu nhiên với hiệp phương sai $\sigma^2(X^\top X)^{-1}$ (Phần A và H). Câu hỏi của phần này: sai số ước lượng hệ số lan truyền thế nào vào nghiệm tối ưu? Trả lời bằng hai cách — bậc nhất qua định lý vỏ bọc, và đầy đủ qua Monte Carlo.
+
+Với $\sigma = 0{,}05$ và CCD 17 thí nghiệm, sai số chuẩn của mọi hệ số suy từ đường chéo của $(X^\top X)^{-1}$:
+
+| Hệ số | Ước lượng | SE | t |
+|---|---|---|---|
+| $\beta_0$ | 9,20 | 0,029 | 319 |
+| $b_u$ | 0,30 | 0,0135 | 22,2 |
+| $b_v$ | 0,26 | 0,0135 | 19,2 |
+| $b_w$ | 0,10 | 0,0135 | 7,4 |
+| $B_{uu}$ | −0,014 | 0,0149 | −0,94 |
+| $B_{vv}$ | −0,009 | 0,0149 | −0,60 |
+| $B_{ww}$ | −0,002 | 0,0149 | −0,13 |
+| $B_{uv}$ | 0,005 | 0,0177 | 0,28 |
+
+```remark[Đọc bảng: dốc tốt, cong kém]
+Với $df = 17 - 10 = 7$, ngưỡng t hai phía mức 5% là 2,37. Ba hệ số tuyến tính ($t = 22{,}2$; $19{,}2$; $7{,}4$) vượt xa ngưỡng; không hệ số cong nào ($|t| \le 0{,}94$) có ý nghĩa. Hệ quả: hướng leo dốc được xác định chặt, nhưng độ cong — thứ quyết định vị trí và độ cao của đỉnh — thì không. Đây là phiên bản định lượng của cạm bẫy ngoại suy ở Phần D dưới đây: đỉnh nằm cách tâm thiết kế khoảng 25,1 đơn vị mã hoá, và giá trị tại đó được dự đoán bởi chính các hệ số kém tin cậy nhất.
+```
+
+```remark[Phương sai bậc nhất của giá trị tối ưu]
+Với tập ràng buộc hoạt động cố định, định lý vỏ bọc cho $\partial Y^*/\partial\beta_i = x^*_i$ — đạo hàm của $Y$ theo hệ số $\beta_i$ tại nghiệm, vì $x^*$ là điểm tối ưu nên các số hạng chứa chuyển động của $x^*$ triệt tiêu. Do đó, bậc nhất:
+$$\mathrm{Var}(Y^*) = \sum_{i,j} \mathrm{Cov}(\beta_i, \beta_j)\, x^*_i x^*_j = \sigma^2 x^{*\top}(X^\top X)^{-1} x^*.$$
+Với $x^* = (1; 13{,}39; 15; 15; 179{,}3; 225; 225; 200{,}9; 200{,}9; 225)$ (các monomial của nghiệm trong từng cột của $X$), tính được $\mathrm{Var}(Y^*) = 87{,}8$, tức $\mathrm{SD}(Y^*) = 9{,}4$ mg/g. Khối hệ số bậc hai đóng góp $87{,}8/87{,}95 \approx 99{,}9\%$ phương sai: độ bất định của giá trị đỉnh gần như hoàn toàn do độ cong, không phải do độ dốc. Số 9,4 là thang đo bậc nhất; Monte Carlo dưới đây xác nhận bậc này.
+```
+
+```example[Monte Carlo: 20 000 lần rút hệ số]
+Rút 20 000 vector $\beta$ từ $N(\hat\beta, \sigma^2(X^\top X)^{-1})$ và giải lại bài toán ràng buộc cho từng vector. Kết quả ba tầng. Thứ nhất, chỉ $19\%$ số lần rút giữ được ma trận $B$ âm xác định — bề mặt còn lõm; với 81% còn lại mô hình không còn dùng được để tối ưu (đỉnh trượt ra ngoài miền thiết kế hoặc biến thành yên ngựa). Tần suất 19% là thước đo định lượng của lời cảnh báo ở Phần F dưới đây: dữ liệu hiện tại không đủ để khẳng định tồn tại đỉnh trong miền. Thứ hai, với 3771 lần rút lõm, hiệu suất đỉnh $Y^*$ có trung bình 11,1, SD 7,8, khoảng 95% [5,5; 16,6] (Hình 5a) — khoảng rộng hơn chính giá trị ước lượng. Thứ ba, vị trí ổn định hơn giá trị: trong số các lần rút có cùng cấu trúc ràng buộc ($v = 15$, $w = 15$), nhiệt độ tối ưu $T^*$ có SD 5,5 °C và khoảng 95% [58; 75] (Hình 5b). Mô hình định vị đỉnh trong vài độ C; độ cao đỉnh thì không định lượng được.
+```
+
+<figure style="margin:1.8em 0;"><img src="/img/opt/mc-sensitivity.svg" alt="Monte Carlo độ nhạy của nghiệm tối ưu" style="display:block;width:100%;max-width:840px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 5 — (a) Y* từ 3771 lần rút giữ được bề mặt lõm; đường đứt vàng là chuẩn cùng trung bình 11,1 và SD 7,8 — phân phối lệch, đuôi nặng; đường đỏ là ước lượng điểm 14,64. (b) T* từ 865 lần rút cùng cấu trúc ràng buộc v = 15, w = 15; SD 5,5 °C, ước lượng điểm 73,4.</figcaption></figure>
+
+```remark[Vì sao trung bình có điều kiện thấp hơn ước lượng điểm]
+Trung bình có điều kiện của $Y^*$ (11,1) thấp hơn ước lượng điểm (14,64) — không phải sai lệch. Điều kiện "B âm xác định" chọn các lần rút có độ cong âm mạnh hơn, và tại nghiệm $v^2 = w^2 = 225$ nên độ cong âm mạnh hơn hạ thấp đỉnh dự đoán. Đây là hiệu ứng chọn mẫu của chính điều kiện hoá: khoảng [5,5; 16,6] là khoảng có điều kiện, không phải khoảng tin cậy vô điều kiện của $Y^*$.
+```
+
+```remark[Bài học thực hành: mô hình định vị, thực nghiệm định lượng]
+Ba kết luận cho quyết định. Thứ nhất, khoảng [5,5; 16,6] của $Y^*$ giải thích vì sao quy trình hai giai đoạn ở Phần D dưới đây không phải tuỳ chọn: giai đoạn hai đo trực tiếp $Y$ tại $(73{,}4; 70; 90)$, và phép đo này không phụ thuộc vào độ cong ước lượng kém — đó là cách duy nhất để chứng nhận độ cao đỉnh. Thứ hai, hướng cải thiện thiết kế: tăng số điểm tâm $n_c$ (thêm bậc tự do, ước lượng $\sigma$ tốt hơn), tăng $\alpha$ (đòn bẩy của độ cong), hoặc giảm $\sigma$ (phép đo chính xác hơn); sai số chuẩn của hệ số cong tỉ lệ với $\sigma/\sqrt{\Sigma u^4 - (\Sigma u^2)^2/n}$, với thiết kế này $\Sigma u^4 = 24$, $\Sigma u^2 = 13{,}66$, $n = 17$ cho mẫu số $\sqrt{13{,}0}$. Thứ ba, phương pháp: lan truyền sai số bậc nhất ở loạt bài *Thống kê cơ bản cho khoa học sự sống* (Phần 4), khoảng tin cậy (Phần 1), còn Monte Carlo là phân tích độ nhạy toàn cục, với khung phương pháp đầy đủ ở Saltelli et al.
+```
+
+Khung phân tích độ nhạy toàn cục và các chỉ số dựa trên phương sai — Sobol, tổng ảnh hưởng — trình bày ở Saltelli et al. [^8].
+
 ## Phần D — Quy trình thực hành
 
 ```remark[Quy trình hai giai đoạn]
@@ -193,7 +404,7 @@ Tại tâm, $x = (1, 0, \ldots, 0)$: $\mathrm{Var} = \sigma^2 (X^\top X)^{-1}_{1
 
 Khoảng tin cậy 95% của trung bình dự đoán tại nghiệm: $14{,}64 \pm t_{7;\,0{,}975} \cdot 9{,}36 = 14{,}64 \pm 2{,}365 \cdot 9{,}36 = 14{,}64 \pm 22{,}1$, tức $[-7{,}5;\, 36{,}8]$. Khoảng dự đoán cho một quan sát mới chênh không đáng kể: thừa số $\sqrt{1 + x^\top(X^\top X)^{-1}x}$ so với $\sqrt{x^\top(X^\top X)^{-1}x}$ khác 0,001% vì số hạng thiết kế (35 060) trội hẳn số 1. Khoảng rộng gấp ba lần chính giá trị ước lượng — "nghiệm cho $Y^* = 14{,}6$" không kèm khoảng là một con số không mang nghĩa.
 
-**Thiên lệch.** Ngoài phương sai, phần dư Taylor bậc ba (Phần F) tăng như $\|x\|^3$ khi ra xa tâm; thiên lệch này không giảm khi tăng cỡ mẫu. Hai thành phần cộng lại: càng xa tâm, sai số dự đoán càng do thiên lệch chi phối.
+**Thiên lệch.** Ngoài phương sai, phần dư Taylor bậc ba (Phần F dưới đây) tăng như $\|x\|^3$ khi ra xa tâm; thiên lệch này không giảm khi tăng cỡ mẫu. Hai thành phần cộng lại: càng xa tâm, sai số dự đoán càng do thiên lệch chi phối.
 
 **Dấu hiệu và xử lý.** Ba dấu hiệu cảnh báo: nghiệm nằm trên biên của miền khả thi (ở đây $C = 70$ — quyết định nhạy với chính ràng buộc, Phần C); $\|x^*\|$ vượt xa bán kính thiết kế; và $Y^* = 14{,}6$ vượt mọi giá trị quan sát (lớn nhất 9,84). Xử lý: dịch tâm và thu nhỏ thang thiết kế quanh vùng hứa hẹn rồi chạy giai đoạn hai (Phần D); phân tích ridge để kẹp nghiệm trong bán kính đáng tin; hoặc nếu phải ra xa — chấp nhận và báo cáo độ rộng của khoảng.
 ```
@@ -302,7 +513,7 @@ Khi có hai đáp ứng cần cân bằng, chẳng hạn hiệu suất flavonoid
 ```
 
 ```remark[Phiên bản bền vững]
-Hệ số của mô hình RSM là ước lượng với khoảng tin cậy; nếu ngân sách thực nghiệm nhỏ, bất định này đáng kể. Phiên bản bền vững yêu cầu nghiệm tốt nhất theo nghĩa xấu nhất trên tập hệ số chấp nhận được: $\\max_x \\min_{\\beta \\in B} Y(x; \\beta)$ cùng các ràng buộc tương ứng. Sự khác biệt giữa hiệu suất tối ưu danh nghĩa và hiệu suất bền vững gọi là **giá của tính bền vững** (price of robustness) — số hiệu suất trả để chắc chắn đạt ngưỡng trong mọi kịch bản chấp nhận được.
+Hệ số của mô hình RSM là ước lượng với khoảng tin cậy; nếu ngân sách thực nghiệm nhỏ, bất định này đáng kể. Phiên bản bền vững yêu cầu nghiệm tốt nhất theo nghĩa xấu nhất trên tập hệ số chấp nhận được: $\max_x \min_{\beta \in B} Y(x; \beta)$ cùng các ràng buộc tương ứng. Sự khác biệt giữa hiệu suất tối ưu danh nghĩa và hiệu suất bền vững gọi là **giá của tính bền vững** (price of robustness) — số hiệu suất trả để chắc chắn đạt ngưỡng trong mọi kịch bản chấp nhận được.
 ```
 
 Khung lý thuyết và cách đo chỉ số này ở Bertsimas và Sim [^5].
@@ -340,91 +551,6 @@ Khớp bậc hai qua các điểm mức khác nhau không thể phát hiện b�
 
 Khi đó có bốn hướng. Mô hình bậc ba, với thiết kế bổ sung điểm (CCD mở rộng hoặc Box–Behnken bậc cao hơn). Thu hẹp miền khả thi để số hạng bậc cao nhỏ trên miền — đúng tình huống bài này: các biên $T \le 75$, $C \le 70$, $t \le 90$ giữ nghiệm gần tâm thiết kế, nơi xấp xỉ bậc hai đáng tin. Phi tham số: Bayesian optimization với Gaussian process — không giả định dạng hàm, cập nhật posterior từ mỗi điểm đo, acquisition function cân bằng khai thác–thăm dò; thích hợp khi mỗi thí nghiệm đắt tiền và hàm có thể đa cực trị. Mô hình cơ chế: nếu biết động học hoặc nhiệt động của quá trình chiết, dùng mô hình vật lý thay mô hình thực nghiệm — ít tham số hơn và ngoại suy tốt hơn.
 ```
-
-## Phần G — Hình học bậc hai: phân tích chính tắc
-
-Ma trận $B$ trong dạng toàn phương mang toàn bộ thông tin về hình dạng bề mặt. Vì $B$ đối xứng, nó chéo hoá trực giao được: $B = Q\Lambda Q^\top$ với $Q$ trực giao và $\Lambda = \mathrm{diag}(\lambda_1, \ldots, \lambda_k)$. Đây là khung của phân tích chính tắc trong lý thuyết bề mặt đáp ứng [^7].
-
-```definition[Phân tích chính tắc]
-Gọi $u^*$ là điểm dừng ($Bu^* = -b/2$) và $w = Q^\top (u - u^*)$ là toạ độ theo các trục chính. Mô hình bậc hai trở thành dạng chính tắc
-$$Y = Y(u^*) + \sum_{i=1}^k \lambda_i w_i^2,$$
-vì $u^\top B u - u^{*\top} B u^* = (u - u^*)^\top B (u - u^*) = w^\top \Lambda w$. Phân loại điểm dừng theo dấu các $\lambda_i$: toàn âm — cực đại; toàn dương — cực tiểu; trái dấu — yên ngựa; có $\lambda_i = 0$ — hệ thống rãnh (ridge) dọc trục thứ $i$. Đây là tiêu chuẩn phân loại đầy đủ của bề mặt bậc hai, không cần vẽ.
-```
-
-```example[Trị riêng của ma trận B trong bài toán]
-Với mô hình flavonoid, $B$ có khối $(u, v)$ không chéo do hệ số tương tác:
-$$B = \begin{pmatrix} -0{,}014 & 0{,}0025 & 0 \\ 0{,}0025 & -0{,}009 & 0 \\ 0 & 0 & -0{,}002 \end{pmatrix}.$$
-Trị riêng của khối $(u,v)$ là nghiệm của $\lambda^2 + 0{,}023\lambda + 0{,}00011975 = 0$ (tổng $-0{,}023$, tích $0{,}00011975$):
-$$\lambda_1 = -0{,}00796, \qquad \lambda_2 = -0{,}01504,$$
-cùng $\lambda_3 = -0{,}002$. Cả ba âm — điểm dừng là cực đại; tích $4\lambda_1\lambda_2 = 4{,}79 \times 10^{-4}$ chính là định thức của Hessian trên mặt phẳng $(u,v)$ đã dùng ở Phần B. Vector riêng ứng với $\lambda_1$ là $(0{,}38; 0{,}92)$: trục dài của các elíp mức, hợp với trục $u$ một góc $67{,}5°$; vector ứng với $\lambda_2$ là $(0{,}92; -0{,}38)$, vuông góc với nó, góc $-22{,}5°$ (Hình 5). Hệ số tương tác $uv$ không đổi dấu các $\lambda_i$ nhưng làm xoay các trục chính khỏi trục toạ độ: nếu $\beta_{uv} = 0$, khối $(u,v)$ đã chéo sẵn và các trục chính trùng trục toạ độ.
-```
-
-<figure style="margin:1.8em 0;"><img src="/img/opt/canonical.svg" alt="Phân tích chính tắc của bề mặt đáp ứng" style="display:block;width:100%;max-width:620px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 5 — Đường mức của Y(u, v) tại w = 25. Các elíp đồng tâm tại cực đại tự do (14,0; 18,3), trục dài nghiêng 67,5° (hướng (0,38; 0,92), λ = −0,0080), trục ngắn vuông góc (λ = −0,0150). Đường đỏ là biên C = 70; tối ưu ràng buộc (13,4; 15,0) nằm trên đó.</figcaption></figure>
-
-```remark[Đọc kết quả từ phân tích chính tắc]
-Trục dài (ứng với $\lambda_1$ gần 0 nhất) là hướng bề mặt "phẳng nhất": đi xa đỉnh theo hướng này làm hiệu suất giảm chậm nhất. Với quyết định thực tế: quanh nghiệm tối ưu, thay đổi theo hướng $(0{,}38; 0{,}92)$ trong mặt phẳng $(T, C)$ ít rủi ro hơn thay đổi vuông góc với nó; nếu giai đoạn xác nhận lệch khỏi dự đoán, biết hướng nhạy cảm giúp chọn điểm kiểm tra. Khi có $\lambda_i$ gần 0, bề mặt gần suy biến: nhiều tổ hợp cho hiệu suất gần như nhau và "nghiệm" kém xác định — phải cảnh giác với khẳng định nghiệm duy nhất. Trong bài toán này mọi $\lambda_i$ cách 0 đủ xa, nên đỉnh được xác định tốt.
-```
-
-## Phần H — Thiết kế thực nghiệm cho mô hình bậc hai
-
-Mô hình bậc hai ba biến có $p = 1 + 3 + 3 + 3 = 10$ tham số; thiết kế phải cung cấp đủ thông tin để ước lượng chúng và để kiểm tra mô hình. Cấu trúc và tính chất của thiết kế trung tâm tổ hợp trình bày ở Montgomery [^6] và Box–Draper [^7].
-
-```definition[Thiết kế trung tâm tổ hợp (CCD)]
-**Thiết kế trung tâm tổ hợp** gồm ba khối: $2^3 = 8$ điểm giai thừa $(\pm 1)^3$, $2k = 6$ điểm sao $(\pm\alpha, 0, 0)$, $(0, \pm\alpha, 0)$, $(0, 0, \pm\alpha)$, và $n_c$ điểm lặp tại tâm. Khoảng cách sao $\alpha$ chọn theo tính quay (rotatability): phương sai dự đoán của $\hat Y(x)$ chỉ phụ thuộc $\|x\|$, không phụ thuộc hướng, khi
-$$\alpha = 2^{k/4}, \qquad \text{ở đây } \alpha = 2^{3/4} = 1{,}682, \qquad \alpha^4 = 2^k = 8.$$
-Với $k = 3$ và $n_c = 3$: tổng cộng 17 thí nghiệm cho 10 tham số — 7 bậc tự do dành cho sai số (Hình 6).
-```
-
-<figure style="margin:1.8em 0;"><img src="/img/opt/ccd-design.svg" alt="Thiết kế trung tâm tổ hợp ba biến" style="display:block;width:100%;max-width:640px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 6 — CCD cho ba biến: 8 điểm giai thừa (teal) tại đỉnh khối lập phương (±1)³, 6 điểm sao (vàng) tại ±α = ±1,682 trên các trục, và tâm lặp 3 lần (xanh). Tính quay: α⁴ = 2³ = 8.</figcaption></figure>
-
-```remark[Trực giao và phương sai của hệ số]
-Với $\alpha = 2^{k/4}$, ma trận $X^\top X$ của CCD có cấu trúc khối chéo: khối tuyến tính $\{u, v, w\}$, khối tương tác $\{uv, uw, vw\}$, khối $\{1, u^2, v^2, w^2\}$. Mọi tích chéo giữa hai khối khác nhau bằng 0: $\sum u_i = 0$, $\sum u_i v_i = 0$, $\sum u_i^2 v_i = 0$, $\sum u_i v_i w_i = 0$ — nên hệ số thuộc các khối khác nhau ước lượng độc lập. Khối tuyến tính chéo, với $\sum u_i^2 = 8 + 2\alpha^2 = 13{,}66$ (8 điểm giai thừa cộng 2 điểm sao trên trục $u$):
-$$\mathrm{Var}(\hat\beta_u) = \frac{\sigma^2}{\sum u_i^2}, \qquad \mathrm{SE}(\hat\beta_u) = \frac{\sigma}{\sqrt{13{,}66}} = 0{,}0135 \ \text{với } \sigma = 0{,}05.$$
-Sai số chuẩn dưới 5% giá trị hệ số $0{,}30$: dữ liệu đủ để phân biệt các hệ số. Vai trò của khối sao: nếu chỉ có 8 điểm giai thừa và tâm, thì $u^2 = v^2 = w^2$ trên mọi điểm của thiết kế — ba cột trùng nhau, $X^\top X$ suy biến, và $\beta_{uu}, \beta_{vv}, \beta_{ww}$ không ước lượng riêng được. Điểm sao tách các hướng: tại $(\pm\alpha, 0, 0)$ chỉ $u^2 \neq 0$, tại $(0, \pm\alpha, 0)$ chỉ $v^2 \neq 0$. Độ cong theo từng hướng chỉ đo được nhờ khối này — lý do CCD cần điểm sao dù chúng nằm ngoài khối giai thừa.
-```
-
-## Phần I — Độ nhạy Monte Carlo và khoảng tin cậy của nghiệm
-
-Mọi con số ở các phần trước — hệ số, nghiệm $(73{,}4; 70; 90)$, $Y^* = 14{,}64$ — là hàm của vector ước lượng $\hat\beta$, và $\hat\beta$ là một vector ngẫu nhiên với hiệp phương sai $\sigma^2(X^\top X)^{-1}$ (Phần A và H). Câu hỏi của phần này: sai số ước lượng hệ số lan truyền thế nào vào nghiệm tối ưu? Trả lời bằng hai cách — bậc nhất qua định lý vỏ bọc, và đầy đủ qua Monte Carlo.
-
-Với $\sigma = 0{,}05$ và CCD 17 thí nghiệm, sai số chuẩn của mọi hệ số suy từ đường chéo của $(X^\top X)^{-1}$:
-
-| Hệ số | Ước lượng | SE | t |
-|---|---|---|---|
-| $\beta_0$ | 9,20 | 0,029 | 319 |
-| $b_u$ | 0,30 | 0,0135 | 22,2 |
-| $b_v$ | 0,26 | 0,0135 | 19,2 |
-| $b_w$ | 0,10 | 0,0135 | 7,4 |
-| $B_{uu}$ | −0,014 | 0,0149 | −0,94 |
-| $B_{vv}$ | −0,009 | 0,0149 | −0,60 |
-| $B_{ww}$ | −0,002 | 0,0149 | −0,13 |
-| $B_{uv}$ | 0,005 | 0,0177 | 0,28 |
-
-```remark[Đọc bảng: dốc tốt, cong kém]
-Với $df = 17 - 10 = 7$, ngưỡng t hai phía mức 5% là 2,37. Ba hệ số tuyến tính ($t = 22{,}2$; $19{,}2$; $7{,}4$) vượt xa ngưỡng; không hệ số cong nào ($|t| \le 0{,}94$) có ý nghĩa. Hệ quả: hướng leo dốc được xác định chặt, nhưng độ cong — thứ quyết định vị trí và độ cao của đỉnh — thì không. Đây là phiên bản định lượng của cạm bẫy ngoại suy ở Phần D: đỉnh nằm cách tâm thiết kế khoảng 25,1 đơn vị mã hoá, và giá trị tại đó được dự đoán bởi chính các hệ số kém tin cậy nhất.
-```
-
-```remark[Phương sai bậc nhất của giá trị tối ưu]
-Với tập ràng buộc hoạt động cố định, định lý vỏ bọc cho $\partial Y^*/\partial\beta_i = x^*_i$ — đạo hàm của $Y$ theo hệ số $\beta_i$ tại nghiệm, vì $x^*$ là điểm tối ưu nên các số hạng chứa chuyển động của $x^*$ triệt tiêu. Do đó, bậc nhất:
-$$\mathrm{Var}(Y^*) = \sum_{i,j} \mathrm{Cov}(\beta_i, \beta_j)\, x^*_i x^*_j = \sigma^2 x^{*\top}(X^\top X)^{-1} x^*.$$
-Với $x^* = (1; 13{,}39; 15; 15; 179{,}3; 225; 225; 200{,}9; 200{,}9; 225)$ (các monomial của nghiệm trong từng cột của $X$), tính được $\mathrm{Var}(Y^*) = 87{,}8$, tức $\mathrm{SD}(Y^*) = 9{,}4$ mg/g. Khối hệ số bậc hai đóng góp $87{,}8/87{,}95 \approx 99{,}9\%$ phương sai: độ bất định của giá trị đỉnh gần như hoàn toàn do độ cong, không phải do độ dốc. Số 9,4 là thang đo bậc nhất; Monte Carlo dưới đây xác nhận bậc này.
-```
-
-```example[Monte Carlo: 20 000 lần rút hệ số]
-Rút 20 000 vector $\beta$ từ $N(\hat\beta, \sigma^2(X^\top X)^{-1})$ và giải lại bài toán ràng buộc cho từng vector. Kết quả ba tầng. Thứ nhất, chỉ $19\%$ số lần rút giữ được ma trận $B$ âm xác định — bề mặt còn lõm; với 81% còn lại mô hình không còn dùng được để tối ưu (đỉnh trượt ra ngoài miền thiết kế hoặc biến thành yên ngựa). Tần suất 19% là thước đo định lượng của lời cảnh báo ở Phần F: dữ liệu hiện tại không đủ để khẳng định tồn tại đỉnh trong miền. Thứ hai, với 3771 lần rút lõm, hiệu suất đỉnh $Y^*$ có trung bình 11,1, SD 7,8, khoảng 95% [5,5; 16,6] (Hình 7a) — khoảng rộng hơn chính giá trị ước lượng. Thứ ba, vị trí ổn định hơn giá trị: trong số các lần rút có cùng cấu trúc ràng buộc ($v = 15$, $w = 15$), nhiệt độ tối ưu $T^*$ có SD 5,5 °C và khoảng 95% [58; 75] (Hình 7b). Mô hình định vị đỉnh trong vài độ C; độ cao đỉnh thì không định lượng được.
-```
-
-<figure style="margin:1.8em 0;"><img src="/img/opt/mc-sensitivity.svg" alt="Monte Carlo độ nhạy của nghiệm tối ưu" style="display:block;width:100%;max-width:840px;margin:0 auto;border:1px solid var(--line);border-radius:6px;"/><figcaption style="margin-top:.5em;font-size:.85em;color:var(--ink-soft);text-align:center;">Hình 7 — (a) Y* từ 3771 lần rút giữ được bề mặt lõm; đường đứt vàng là chuẩn cùng trung bình 11,1 và SD 7,8 — phân phối lệch, đuôi nặng; đường đỏ là ước lượng điểm 14,64. (b) T* từ 865 lần rút cùng cấu trúc ràng buộc v = 15, w = 15; SD 5,5 °C, ước lượng điểm 73,4.</figcaption></figure>
-
-```remark[Vì sao trung bình có điều kiện thấp hơn ước lượng điểm]
-Trung bình có điều kiện của $Y^*$ (11,1) thấp hơn ước lượng điểm (14,64) — không phải sai lệch. Điều kiện "B âm xác định" chọn các lần rút có độ cong âm mạnh hơn, và tại nghiệm $v^2 = w^2 = 225$ nên độ cong âm mạnh hơn hạ thấp đỉnh dự đoán. Đây là hiệu ứng chọn mẫu của chính điều kiện hoá: khoảng [5,5; 16,6] là khoảng có điều kiện, không phải khoảng tin cậy vô điều kiện của $Y^*$.
-```
-
-```remark[Bài học thực hành: mô hình định vị, thực nghiệm định lượng]
-Ba kết luận cho quyết định. Thứ nhất, khoảng [5,5; 16,6] của $Y^*$ giải thích vì sao quy trình hai giai đoạn ở Phần D không phải tuỳ chọn: giai đoạn hai đo trực tiếp $Y$ tại $(73{,}4; 70; 90)$, và phép đo này không phụ thuộc vào độ cong ước lượng kém — đó là cách duy nhất để chứng nhận độ cao đỉnh. Thứ hai, hướng cải thiện thiết kế: tăng số điểm tâm $n_c$ (thêm bậc tự do, ước lượng $\sigma$ tốt hơn), tăng $\alpha$ (đòn bẩy của độ cong), hoặc giảm $\sigma$ (phép đo chính xác hơn); sai số chuẩn của hệ số cong tỉ lệ với $\sigma/\sqrt{\Sigma u^4 - (\Sigma u^2)^2/n}$, với thiết kế này $\Sigma u^4 = 24$, $\Sigma u^2 = 13{,}66$, $n = 17$ cho mẫu số $\sqrt{13{,}0}$. Thứ ba, phương pháp: lan truyền sai số bậc nhất ở loạt bài *Thống kê cơ bản cho khoa học sự sống* (Phần 4), khoảng tin cậy (Phần 1), còn Monte Carlo là phân tích độ nhạy toàn cục, với khung phương pháp đầy đủ ở Saltelli et al.
-```
-
-Khung phân tích độ nhạy toàn cục và các chỉ số dựa trên phương sai — Sobol, tổng ảnh hưởng — trình bày ở Saltelli et al. [^8].
 
 ## Lộ trình tiếp theo
 
